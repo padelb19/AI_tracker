@@ -353,11 +353,23 @@
     if (!resp.ok) throw new Error(`Failed to fetch ${url}`);
     return await resp.text();
   }
+
+  // Updated parseCsv to correctly handle commas inside quoted fields.
   function parseCsv(csvText) {
     const lines = csvText.trim().split('\n');
     const rows = [];
-    for (let i=1; i<lines.length; i++){
-      rows.push(lines[i].split(','));
+    const splitPattern = /,(?=(?:[^"]*"[^"]*")*[^"]*$)/;
+    for (let i = 1; i < lines.length; i++){
+      let cells = lines[i].split(splitPattern);
+      cells = cells.map(cell => {
+        cell = cell.trim();
+        if(cell.startsWith('"') && cell.endsWith('"')){
+          cell = cell.substring(1, cell.length - 1);
+          cell = cell.replace(/""/g, '"');
+        }
+        return cell;
+      });
+      rows.push(cells);
     }
     return rows;
   }
@@ -550,16 +562,16 @@
   }
 
   function createMapOffers(){
-    mapOffers= L.map('mapOffers').setView([46.8,2.0],6);
+    mapOffers = L.map('mapOffers').setView([46.8,2.0],6);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
       attribution:'&copy; OpenStreetMap'
     }).addTo(mapOffers);
 
     mapData.forEach(row=>{
       try{
-        const geo= JSON.parse(row.geometry); // parse string -> geojson object
-        const layer= L.geoJSON(geo,{
-          style:{
+        const geo = JSON.parse(row.geometry); // JSON string now correctly parsed
+        const layer = L.geoJSON(geo, {
+          style: {
             fillColor:'#ccc',
             color:'#888',
             weight:1,
@@ -587,21 +599,21 @@
   /****************************************************
    * On load: fetch CSV & build
    ****************************************************/
-  window.onload= async function(){
+  window.onload = async function(){
     try{
       // 1) OFFERS
       {
-        const totalCsv= await fetchCsv('data/offers_total.csv');
-        const totalRows= parseCsv(totalCsv);
+        const totalCsv = await fetchCsv('data/offers_total.csv');
+        const totalRows = parseCsv(totalCsv);
         for(let row of totalRows){
-          const i= parseInt(row[0]);
+          const i = parseInt(row[0]);
           dateLabels.push(monthLabel(i));
           totalDataOffersGen.push(parseFloat(row[1]));
           totalDataOffersGeneral.push(parseFloat(row[2]));
           totalDataOffersCV.push(parseFloat(row[3]));
         }
-        const shareCsv= await fetchCsv('data/offers_share.csv');
-        const shareRows= parseCsv(shareCsv);
+        const shareCsv = await fetchCsv('data/offers_share.csv');
+        const shareRows = parseCsv(shareCsv);
         for(let row of shareRows){
           shareDataOffersGen.push(parseFloat(row[1]));
           shareDataOffersGeneral.push(parseFloat(row[2]));
@@ -612,33 +624,33 @@
       // 2) SECTORS
       {
         // total_gen
-        const tgenText=await fetchCsv('data/two_sectors_total_gen.csv');
-        const tgenRows=parseCsv(tgenText);
+        const tgenText = await fetchCsv('data/two_sectors_total_gen.csv');
+        const tgenRows = parseCsv(tgenText);
         for(let row of tgenRows){
-          const idx=parseInt(row[0]);
-          if(sectorsLabels.length<=idx){
+          const idx = parseInt(row[0]);
+          if(sectorsLabels.length <= idx){
             sectorsLabels.push(quarterLabel(idx));
           }
           industryTotalGen.push(parseFloat(row[1]));
           serviceTotalGen.push(parseFloat(row[2]));
         }
         // total_nongen
-        const tnongen=await fetchCsv('data/two_sectors_total_nongen.csv');
-        const tnongenRows=parseCsv(tnongen);
+        const tnongen = await fetchCsv('data/two_sectors_total_nongen.csv');
+        const tnongenRows = parseCsv(tnongen);
         for(let row of tnongenRows){
           industryTotalNonGen.push(parseFloat(row[1]));
           serviceTotalNonGen.push(parseFloat(row[2]));
         }
         // share_gen
-        const sgenText= await fetchCsv('data/two_sectors_share_gen.csv');
-        const sgenRows= parseCsv(sgenText);
+        const sgenText = await fetchCsv('data/two_sectors_share_gen.csv');
+        const sgenRows = parseCsv(sgenText);
         for(let row of sgenRows){
           industryShareGen.push(parseFloat(row[1]));
           serviceShareGen.push(parseFloat(row[2]));
         }
         // share_nongen
-        const snongenText= await fetchCsv('data/two_sectors_share_nongen.csv');
-        const snongenRows= parseCsv(snongenText);
+        const snongenText = await fetchCsv('data/two_sectors_share_nongen.csv');
+        const snongenRows = parseCsv(snongenText);
         for(let row of snongenRows){
           industryShareNonGen.push(parseFloat(row[1]));
           serviceShareNonGen.push(parseFloat(row[2]));
@@ -647,11 +659,11 @@
 
       // 3) MAP
       {
-        const mapCsv= await fetchCsv('data/map_offers.csv');
-        const mapRows= parseCsv(mapCsv);
+        const mapCsv = await fetchCsv('data/map_offers.csv');
+        const mapRows = parseCsv(mapCsv);
         for(let row of mapRows){
           // row= [ zoneName, geometry, ia, ia_rel, ia générative, ia générative_rel, total_offers ]
-          let obj={
+          let obj = {
             'Nom Officiel Zone emploi 2020': row[0],
             geometry: row[1],
             ia: row[2],
@@ -669,7 +681,7 @@
       createSectorsChart();
       createMapOffers();
 
-    }catch(err){
+    } catch(err){
       console.error("Error loading data:", err);
     }
   };
