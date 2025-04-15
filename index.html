@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>AI-tracker</title>
-  <!-- Include Chart.js (CDN) -->
+  <!-- Chart.js (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* Global styles */
@@ -18,6 +18,7 @@
       background-color: #f2f2f2;
       padding: 10px;
     }
+    /* Top bar with 3 columns for logo / center title / right block */
     .header-top {
       display: flex;
       align-items: center;
@@ -46,6 +47,7 @@
       font-size: 1.8em;
     }
     .right-block { /* empty placeholder if needed */ }
+    /* Nav bar */
     nav {
       display: flex;
       justify-content: center;
@@ -63,8 +65,9 @@
       background-color: #eee;
     }
 
+    /* Page sections */
     .page {
-      display: none; /* all pages hidden by default; only the active one is shown */
+      display: none; /* hidden by default; only the active one is shown */
       padding: 20px;
     }
     .active {
@@ -140,9 +143,8 @@
       max-width: 800px;
       margin: 0 auto;
     }
-    /* Smaller pie chart container */
     #adoptersSection .chart-container {
-      max-width: 400px; /* Make the pie chart narrower */
+      max-width: 400px; /* narrower for the pie chart */
     }
 
     /* Projects Page */
@@ -246,6 +248,7 @@
 <!-- DASHBOARDS PAGE -->
 <div id="dashboards" class="page">
   <h2>Dashboards</h2>
+  <!-- Sub-navigation for quick jumps -->
   <div class="sub-nav">
     <button onclick="scrollToSection('totalOffersSection')">Total Offers</button>
     <button onclick="scrollToSection('sectorsSection')">Sectors</button>
@@ -253,7 +256,7 @@
     <button onclick="scrollToSection('adoptersSection')">Adopters</button>
   </div>
 
-  <!-- 1) Evolution of total AI offers (csv-based) -->
+  <!-- 1) Evolution of total AI offers (just as an example from previous code) -->
   <div id="totalOffersSection" class="chart-section">
     <h3>Evolution of AI-Related Job Offers</h3>
     <div class="chart-controls">
@@ -264,28 +267,31 @@
     </div>
   </div>
 
-  <!-- 2) Firms adopting AI by sector (mock) -->
+  <!-- 2) Firms adopting AI by sector (New: 2 toggles) -->
   <div id="sectorsSection" class="chart-section">
     <h3>Firms Adopting AI by Sector</h3>
-    <p>(Mock example)</p>
+    <div class="chart-controls">
+      <!-- First toggle: total vs share -->
+      <button onclick="toggleSectorsTotalShare()">Toggle Total / Share</button>
+      <!-- Second toggle: generative AI vs. non-generative -->
+      <button onclick="toggleSectorsGenNonGen()">Toggle GenAI / Non-GenAI</button>
+    </div>
     <div class="chart-container">
       <canvas id="sectorsChart"></canvas>
     </div>
   </div>
 
-  <!-- 3) Ranking of French Zones d’emploi (mock) -->
+  <!-- 3) Ranking of French Zones d’Emplois (mock) -->
   <div id="locationSection" class="chart-section">
     <h3>Ranking of French Zones d’Emplois</h3>
-    <p>(Mock example for demonstration)</p>
     <div class="chart-container">
       <canvas id="zonesChart"></canvas>
     </div>
   </div>
 
-  <!-- 4) Composition of AI adopters (mock) -->
+  <!-- 4) Composition of AI Adopters (mock) -->
   <div id="adoptersSection" class="chart-section">
     <h3>Composition of AI Adopters</h3>
-    <p>(Mock example)</p>
     <div class="chart-container">
       <canvas id="adoptersChart"></canvas>
     </div>
@@ -324,7 +330,6 @@
     pages.forEach(page => page.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
   }
-
   function scrollToSection(sectionId) {
     const section = document.getElementById(sectionId);
     if (!section) return;
@@ -333,57 +338,56 @@
   }
 
   /****************************************************
-   * Minimal CSV fetching & parsing
+   * 1) Minimal data for the FIRST CHART (mock example)
+   *    We'll just define some arrays or fetch CSV, as before.
    ****************************************************/
-  async function fetchCsv(url) {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch ${url}`);
-    }
-    return await response.text();
-  }
+  let monthLabels = ["2019-01","2019-02","2019-03","2019-04"];
+  let totalDataOffersGen = [2, 3, 5, 8];
+  let totalDataOffersGeneral = [10, 12, 15, 20];
+  let totalDataOffersCV = [4, 7, 6, 9];
 
-  function parseCsv(csvText) {
-    // skip the first line (header), parse subsequent lines
-    const lines = csvText.trim().split('\n');
-    const rows = [];
-    for (let i = 1; i < lines.length; i++) {
-      rows.push(lines[i].split(',')); // columns
-    }
-    return rows;
-  }
+  let shareDataOffersGen = [0.0002, 0.0003, 0.0005, 0.0008];
+  let shareDataOffersGeneral = [0.001, 0.002, 0.003, 0.005];
+  let shareDataOffersCV = [0.0004, 0.0007, 0.0006, 0.0009];
 
-  /****************************************************
-   * Generate labels from monthly index (starting Jan 2019)
-   * i=0 -> "2019-01", i=1 -> "2019-02", ...
-   ****************************************************/
-  function monthLabelFromIndex(i) {
-    const baseYear = 2019;
-    const totalMonths = i; // 0,1,2,... 
-    const year = baseYear + Math.floor(totalMonths / 12);
-    const month = (totalMonths % 12) + 1; // 1..12
-    const mm = String(month).padStart(2, '0'); 
-    return `${year}-${mm}`; // e.g. "2019-01"
-  }
-
-  /****************************************************
-   * Data arrays for the FIRST CHART (Offers)
-   ****************************************************/
-  let monthLabels = [];
-  let totalDataOffersGen = [];
-  let totalDataOffersGeneral = [];
-  let totalDataOffersCV = [];
-
-  let shareDataOffersGen = [];
-  let shareDataOffersGeneral = [];
-  let shareDataOffersCV = [];
-
-  let offersChart;
   let offersMode = 'total'; // or 'share'
+  let offersChart;
 
-  /****************************************************
-   * Toggle function: "Total" <-> "Share"
-   ****************************************************/
+  // We'll create this chart after we define a function
+  function createOffersChart() {
+    const ctx = document.getElementById("offersChart").getContext("2d");
+    offersChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: monthLabels,
+        datasets: [
+          {
+            label: 'IA Générative',
+            data: totalDataOffersGen,
+            backgroundColor: 'rgba(255, 99, 132, 0.7)'
+          },
+          {
+            label: 'IA Générale',
+            data: totalDataOffersGeneral,
+            backgroundColor: 'rgba(75, 192, 192, 0.7)'
+          },
+          {
+            label: 'Computer Vision',
+            data: totalDataOffersCV,
+            backgroundColor: 'rgba(54, 162, 235, 0.7)'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: { stacked: true },
+          y: { stacked: true }
+        }
+      }
+    });
+  }
+  // Toggle for the first chart
   function toggleTotalShare(chartName) {
     if (chartName === 'offersChart') {
       offersMode = (offersMode === 'total') ? 'share' : 'total';
@@ -401,71 +405,106 @@
   }
 
   /****************************************************
-   * 1) OFFERS CHART creation
+   * 2) SECOND CHART (Sectors: Industry vs Services)
+   *    We have 4 data sets:
+   *      - total genAI vs non-genAI
+   *      - share genAI vs non-genAI
+   *    Each for Industry & Service
    ****************************************************/
-  function createOffersChart() {
-    const ctx = document.getElementById("offersChart").getContext("2d");
-    offersChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: monthLabels, // e.g. ["2019-01","2019-02","2019-03", ...]
-        datasets: [
-          {
-            label: 'IA Générative',
-            data: totalDataOffersGen, // start in total mode
-            backgroundColor: 'rgba(255, 99, 132, 0.7)'
-          },
-          {
-            label: 'IA Générale',
-            data: totalDataOffersGeneral,
-            backgroundColor: 'rgba(75, 192, 192, 0.7)'
-          },
-          {
-            label: 'Computer Vision',
-            data: totalDataOffersCV,
-            backgroundColor: 'rgba(54, 162, 235, 0.7)'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          title: { display: false },
-          tooltip: { mode: 'index', intersect: false }
-        },
-        scales: {
-          x: { stacked: true },
-          y: { stacked: true }
-        }
-      }
-    });
-  }
 
-  /****************************************************
-   * 2) SECTORS CHART (mock)
-   ****************************************************/
+  // Suppose we have a "quarters" array for the x-axis:
+  const quarters = ["Q1 2019","Q2 2019","Q3 2019","Q4 2019"];
+
+  // We'll define EIGHT arrays:
+  // Industry: totalGen, totalNon, shareGen, shareNon
+  // Service:  totalGen, totalNon, shareGen, shareNon
+
+  // 1) Industry total genAI
+  const indTotalGen = [100, 120, 130, 150];
+  // 2) Industry total non-genAI
+  const indTotalNon = [200, 220, 230, 240];
+  // 3) Industry share genAI
+  const indShareGen = [10, 12, 15, 20]; // example percentages
+  // 4) Industry share non-genAI
+  const indShareNon = [30, 35, 45, 50];
+
+  // 5) Service total genAI
+  const servTotalGen = [80, 90, 100, 120];
+  // 6) Service total non-genAI
+  const servTotalNon = [150, 170, 180, 190];
+  // 7) Service share genAI
+  const servShareGen = [9, 10, 11, 13];  // example
+  // 8) Service share non-genAI
+  const servShareNon = [20, 25, 26, 28];
+
+  // We'll keep track of the user’s chosen mode:
+  //   'total' or 'share'
+  //   'genAI' or 'nonGenAI'
+  let sectorsMode = 'total';
+  let sectorsAIType = 'genAI';
+
   let sectorsChart;
+
+  // We'll create 2 bars each quarter:
+  // dataset[0] => Industry
+  // dataset[1] => Service
   function createSectorsChart() {
     const ctx = document.getElementById("sectorsChart").getContext("2d");
     sectorsChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: ["2019", "2020", "2021"],
+        labels: quarters,
         datasets: [
           {
             label: 'Industrie',
-            data: [100, 120, 130],
+            data: [], // we will fill in updateSectorsChart()
             backgroundColor: 'rgba(153, 102, 255, 0.7)'
           },
           {
-            label: 'Service',
-            data: [80, 100, 140],
+            label: 'Services',
+            data: [],
             backgroundColor: 'rgba(255, 205, 86, 0.7)'
           }
         ]
       },
-      options: { responsive: true }
+      options: {
+        responsive: true
+      }
     });
+
+    // Fill the chart initially ( 'total' + 'genAI' by default )
+    updateSectorsChart();
+  }
+
+  // A function that picks the correct data arrays depending on the toggles
+  function updateSectorsChart() {
+    if (sectorsMode === 'total' && sectorsAIType === 'genAI') {
+      // Industry => indTotalGen, Services => servTotalGen
+      sectorsChart.data.datasets[0].data = indTotalGen;
+      sectorsChart.data.datasets[1].data = servTotalGen;
+    } else if (sectorsMode === 'total' && sectorsAIType === 'nonGenAI') {
+      sectorsChart.data.datasets[0].data = indTotalNon;
+      sectorsChart.data.datasets[1].data = servTotalNon;
+    } else if (sectorsMode === 'share' && sectorsAIType === 'genAI') {
+      sectorsChart.data.datasets[0].data = indShareGen;
+      sectorsChart.data.datasets[1].data = servShareGen;
+    } else if (sectorsMode === 'share' && sectorsAIType === 'nonGenAI') {
+      sectorsChart.data.datasets[0].data = indShareNon;
+      sectorsChart.data.datasets[1].data = servShareNon;
+    }
+    sectorsChart.update();
+  }
+
+  // 1) Toggle total <-> share
+  function toggleSectorsTotalShare() {
+    sectorsMode = (sectorsMode === 'total') ? 'share' : 'total';
+    updateSectorsChart();
+  }
+
+  // 2) Toggle genAI <-> nonGenAI
+  function toggleSectorsGenNonGen() {
+    sectorsAIType = (sectorsAIType === 'genAI') ? 'nonGenAI' : 'genAI';
+    updateSectorsChart();
   }
 
   /****************************************************
@@ -477,11 +516,11 @@
     zonesChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: ["Paris", "Lyon", "Marseille"],
+        labels: ["Paris","Lyon","Marseille"],
         datasets: [
           {
             label: 'IA Offers',
-            data: [500, 300, 200],
+            data: [500,300,200],
             backgroundColor: 'rgba(255, 159, 64, 0.7)'
           }
         ]
@@ -502,15 +541,15 @@
     adoptersChart = new Chart(ctx, {
       type: 'pie',
       data: {
-        labels: ["PME", "ETI", "GE"],
+        labels: ["PME","ETI","GE"],
         datasets: [
           {
             label: 'Composition of AI Adopters',
-            data: [50, 30, 20],
+            data: [50,30,20],
             backgroundColor: [
-              'rgba(54, 162, 235, 0.7)',
-              'rgba(255, 206, 86, 0.7)',
-              'rgba(75, 192, 192, 0.7)'
+              'rgba(54,162,235,0.7)',
+              'rgba(255,206,86,0.7)',
+              'rgba(75,192,192,0.7)'
             ]
           }
         ]
@@ -520,62 +559,17 @@
   }
 
   /****************************************************
-   * On window load: fetch your total & share CSV, parse them, build charts
+   * On window load: build all charts
    ****************************************************/
-  window.onload = async function() {
-    try {
-      /*
-        CSV #1: offers_total.csv with columns:
-        index,ia générative,ia générale,cv
-        e.g.
-        0,2,181,40
-        1,2,195,53
-        2,6,752,195
-        ...
-      */
-      const totalCsvText = await fetchCsv('data/offers_total.csv');
-      const totalRows = parseCsv(totalCsvText);
-      for (let row of totalRows) {
-        // e.g. row = ["0","2","181","40"]
-        const i = parseInt(row[0]);           // e.g. 0 => Jan 2019
-        const valGen = parseFloat(row[1]);    // "ia générative"
-        const valGeneral = parseFloat(row[2]); // "ia générale"
-        const valCV = parseFloat(row[3]);     // "cv"
-
-        // Convert index to monthly label starting 01/2019
-        monthLabels.push( monthLabelFromIndex(i) );
-
-        totalDataOffersGen.push(valGen);
-        totalDataOffersGeneral.push(valGeneral);
-        totalDataOffersCV.push(valCV);
-      }
-
-      /*
-        CSV #2: offers_share.csv with columns:
-        index,ia générative,ia générale,cv
-        e.g.
-        0,0.000239052,0.0216342,0.004781
-        1,0.000215289,0.0209906,0.005705
-        ...
-      */
-      const shareCsvText = await fetchCsv('data/offers_share.csv');
-      const shareRows = parseCsv(shareCsvText);
-      for (let row of shareRows) {
-        // row might be ["0","0.000239052","0.0216342","0.004781"]
-        shareDataOffersGen.push( parseFloat(row[1]) );
-        shareDataOffersGeneral.push( parseFloat(row[2]) );
-        shareDataOffersCV.push( parseFloat(row[3]) );
-      }
-
-      // Create the charts
-      createOffersChart();
-      createSectorsChart();
-      createZonesChart();
-      createAdoptersChart();
-
-    } catch (err) {
-      console.error("Error loading CSV data:", err);
-    }
+  window.onload = function() {
+    // 1) First chart (offers)
+    createOffersChart();
+    // 2) Second chart (sectors)
+    createSectorsChart();
+    // 3) Third chart (zones) mock
+    createZonesChart();
+    // 4) Adopters chart mock
+    createAdoptersChart();
   };
 </script>
 </body>
