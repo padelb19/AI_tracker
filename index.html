@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>AI-tracker</title>
-  <!-- Chart.js -->
+  <!-- Chart.js (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* Basic layout and styling */
+    /* Global styles */
     body {
       margin: 0;
       padding: 0;
@@ -18,6 +18,7 @@
       background-color: #f2f2f2;
       padding: 10px;
     }
+    /* 3-column flex container for logo (left), title (center), optional right block */
     .header-top {
       display: flex;
       align-items: center;
@@ -32,7 +33,7 @@
       justify-content: flex-start;
     }
     .logo {
-      height: 80px;
+      height: 40px;
       margin-left: 10px;
     }
     .center-block {
@@ -48,7 +49,7 @@
     .right-block {
       /* empty placeholder if needed */
     }
-
+    /* Navigation bar below the top bar */
     nav {
       display: flex;
       justify-content: center;
@@ -67,25 +68,14 @@
     }
 
     .page {
-      display: none; /* hidden by default */
+      display: none; /* all pages hidden by default; only the active one is shown */
       padding: 20px;
     }
-    .page.active {
-      display: block; /* show only the active page */
-    }
-    .sub-nav {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .sub-nav button {
-      margin: 5px;
-      background-color: #fff;
-      border: 1px solid #ccc;
-      cursor: pointer;
-      border-radius: 4px;
+    .active {
+      display: block;
     }
 
-    /* Accueil page styling */
+    /* Accueil Page */
     #accueil h2 {
       text-align: center;
       margin-top: 30px;
@@ -122,7 +112,26 @@
       background-color: #fff;
     }
 
-    /* Chart containers on Dashboards page */
+    /* Dashboards Page */
+    #dashboards {
+      margin: 0 auto;
+      max-width: 1000px;
+    }
+    #dashboards h2 {
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .sub-nav {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .sub-nav button {
+      margin: 5px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      border-radius: 4px;
+    }
     .chart-section {
       margin-bottom: 40px;
     }
@@ -135,11 +144,12 @@
       max-width: 800px;
       margin: 0 auto;
     }
+    /* Smaller pie chart container */
     #adoptersSection .chart-container {
-      max-width: 400px; /* narrower pie chart */
+      max-width: 400px; /* Make the pie chart narrower */
     }
 
-    /* Projects page styling */
+    /* Projects Page */
     #projects h2 {
       text-align: center;
       margin-bottom: 40px;
@@ -174,20 +184,20 @@
   </nav>
 </header>
 
-<!-- Accueil Page -->
+<!-- ACCUEIL PAGE -->
 <div id="accueil" class="page active">
   <h2>Welcome to the AI-tracker!</h2>
   <p style="text-align:center;">
     Here you can find insights into the evolution of AI adoption by French firms, based on their recruitment data.
   </p>
-
+  
   <div class="explanation">
     This tracker is built using machine learning models on the JOCAS database, edited by the 
     French Ministry of Labor's DARES. By automatically detecting AI-related job offers, 
     the AI-tracker monitors the growing adoption of this technology within the French economy.
   </div>
 
-  <!-- Additional Figures -->
+  <!-- Additional Figures (Mock) -->
   <div class="additional-figures">
     <!-- AI Figures -->
     <h3>Additional Key Figures - AI</h3>
@@ -237,7 +247,7 @@
   </div>
 </div>
 
-<!-- Dashboards Page -->
+<!-- DASHBOARDS PAGE -->
 <div id="dashboards" class="page">
   <h2>Dashboards</h2>
   <div class="sub-nav">
@@ -247,7 +257,7 @@
     <button onclick="scrollToSection('adoptersSection')">Adopters</button>
   </div>
 
-  <!-- 1) Evolution of total AI offers (uses CSV) -->
+  <!-- 1) Evolution of total AI offers (csv-based) -->
   <div id="totalOffersSection" class="chart-section">
     <h3>Evolution of AI-Related Job Offers</h3>
     <div class="chart-controls">
@@ -261,18 +271,16 @@
   <!-- 2) Firms adopting AI by sector (mock) -->
   <div id="sectorsSection" class="chart-section">
     <h3>Firms Adopting AI by Sector</h3>
-    <p>(Mock example for demonstration)</p>
+    <p>(Mock example)</p>
     <div class="chart-container">
       <canvas id="sectorsChart"></canvas>
     </div>
   </div>
 
-  <!-- 3) Ranking of French Zones d’emploi (uses CSV) -->
+  <!-- 3) Ranking of French Zones d’emploi (mock) -->
   <div id="locationSection" class="chart-section">
     <h3>Ranking of French Zones d’Emplois</h3>
-    <div class="chart-controls">
-      <button onclick="toggleTotalShare('zonesChart')">Toggle Total / Share</button>
-    </div>
+    <p>(Mock example for demonstration)</p>
     <div class="chart-container">
       <canvas id="zonesChart"></canvas>
     </div>
@@ -288,7 +296,7 @@
   </div>
 </div>
 
-<!-- Projects Page -->
+<!-- PROJECTS PAGE -->
 <div id="projects" class="page">
   <h2>Projects</h2>
   <section class="authors">
@@ -312,12 +320,12 @@
 </div>
 
 <script>
-  /***********************************************************************
+  /****************************************************
    * Page Navigation
-   ***********************************************************************/
+   ****************************************************/
   function showPage(pageId) {
     const pages = document.querySelectorAll('.page');
-    pages.forEach((page) => page.classList.remove('active'));
+    pages.forEach(page => page.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
   }
 
@@ -328,9 +336,9 @@
     section.scrollIntoView({ behavior: 'smooth' });
   }
 
-  /***********************************************************************
+  /****************************************************
    * Minimal CSV fetching & parsing
-   ***********************************************************************/
+   ****************************************************/
   async function fetchCsv(url) {
     const response = await fetch(url);
     if (!response.ok) {
@@ -340,20 +348,30 @@
   }
 
   function parseCsv(csvText) {
-    // simple parser: skip first line (header), split lines by newline, then columns by comma
+    // skip the first line (header), then parse each subsequent line
     const lines = csvText.trim().split('\n');
-    const result = [];
+    const rows = [];
     for (let i = 1; i < lines.length; i++) {
-      const row = lines[i].split(',');
-      result.push(row);
+      rows.push(lines[i].split(',')); // columns
     }
-    return result;
+    return rows;
   }
 
-  /***********************************************************************
-   * Data for the FIRST CHART (Offers)
-   ***********************************************************************/
-  let dateLabels = [];
+  /****************************************************
+   * QUARTER LABELS from "index"
+   * e.g. 0 -> Q1 2019, 1 -> Q2 2019, 2 -> Q3 2019, etc.
+   ****************************************************/
+  function quarterLabelFromIndex(i) {
+    const baseYear = 2019;
+    const year = baseYear + Math.floor(i / 4);
+    const quarter = (i % 4) + 1;
+    return `Q${quarter} ${year}`;
+  }
+
+  /****************************************************
+   * Data arrays for the FIRST CHART (Offers)
+   ****************************************************/
+  let quarterLabels = [];
   let totalDataOffersGen = [];
   let totalDataOffersGeneral = [];
   let totalDataOffersCV = [];
@@ -365,23 +383,9 @@
   let offersChart;
   let offersMode = 'total'; // or 'share'
 
-  /***********************************************************************
-   * Data for the THIRD CHART (Zones)
-   ***********************************************************************/
-  let zones = [];
-  let zonesTotal = [];
-  let zonesShare = [];
-  let zonesChart;
-  let zonesMode = 'total'; // or 'share'
-
-  /***********************************************************************
-   * Other (mock) charts
-   ***********************************************************************/
-  let sectorsChart, adoptersChart;
-
-  /***********************************************************************
-   * Toggle Functions
-   ***********************************************************************/
+  /****************************************************
+   * Toggle function: "Total" <-> "Share"
+   ****************************************************/
   function toggleTotalShare(chartName) {
     if (chartName === 'offersChart') {
       offersMode = (offersMode === 'total') ? 'share' : 'total';
@@ -396,33 +400,21 @@
       }
       offersChart.update();
     }
-    else if (chartName === 'zonesChart') {
-      zonesMode = (zonesMode === 'total') ? 'share' : 'total';
-      if (zonesMode === 'total') {
-        zonesChart.data.datasets[0].data = zonesTotal;
-        zonesChart.options.scales.y.title.text = 'Total Offers';
-      } else {
-        zonesChart.data.datasets[0].data = zonesShare;
-        zonesChart.options.scales.y.title.text = 'Share of IA Offers';
-      }
-      zonesChart.update();
-    }
   }
 
-  /***********************************************************************
-   * Chart Creation
-   ***********************************************************************/
-  // 1) OFFERS CHART
+  /****************************************************
+   * 1) OFFERS CHART creation
+   ****************************************************/
   function createOffersChart() {
     const ctx = document.getElementById("offersChart").getContext("2d");
     offersChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: dateLabels,
+        labels: quarterLabels,
         datasets: [
           {
             label: 'IA Générative',
-            data: totalDataOffersGen,
+            data: totalDataOffersGen, // start in total mode
             backgroundColor: 'rgba(255, 99, 132, 0.7)'
           },
           {
@@ -439,6 +431,10 @@
       },
       options: {
         responsive: true,
+        plugins: {
+          title: { display: false },
+          tooltip: { mode: 'index', intersect: false }
+        },
         scales: {
           x: { stacked: true },
           y: { stacked: true }
@@ -447,7 +443,10 @@
     });
   }
 
-  // 2) SECTORS CHART (mock)
+  /****************************************************
+   * 2) SECTORS CHART (mock)
+   ****************************************************/
+  let sectorsChart;
   function createSectorsChart() {
     const ctx = document.getElementById("sectorsChart").getContext("2d");
     sectorsChart = new Chart(ctx, {
@@ -467,41 +466,41 @@
           }
         ]
       },
-      options: { responsive: true }
+      options: {
+        responsive: true
+      }
     });
   }
 
-  // 3) ZONES CHART
+  /****************************************************
+   * 3) ZONES CHART (mock)
+   ****************************************************/
+  let zonesChart;
   function createZonesChart() {
     const ctx = document.getElementById("zonesChart").getContext("2d");
     zonesChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: zones,
+        labels: ["Paris", "Lyon", "Marseille"],
         datasets: [
           {
             label: 'IA Offers',
-            data: zonesTotal,
+            data: [500, 300, 200],
             backgroundColor: 'rgba(255, 159, 64, 0.7)'
           }
         ]
       },
       options: {
         indexAxis: 'y',
-        responsive: true,
-        scales: {
-          y: {
-            title: {
-              display: true,
-              text: 'Total Offers'
-            }
-          }
-        }
+        responsive: true
       }
     });
   }
 
-  // 4) ADOPTERS CHART (mock)
+  /****************************************************
+   * 4) ADOPTERS CHART (mock)
+   ****************************************************/
+  let adoptersChart;
   function createAdoptersChart() {
     const ctx = document.getElementById("adoptersChart").getContext("2d");
     adoptersChart = new Chart(ctx, {
@@ -520,81 +519,66 @@
           }
         ]
       },
-      options: { responsive: true }
+      options: {
+        responsive: true
+      }
     });
   }
 
-  /***********************************************************************
-   * On window load: Fetch CSV data, parse it, build charts
-   ***********************************************************************/
+  /****************************************************
+   * On window load: fetch your total & share CSV, parse them, build charts
+   ****************************************************/
   window.onload = async function() {
     try {
-      /* 1) OFFERS: load total data
-         Suppose offers_total.csv has columns:
-         index,date,ia_generative,ia_generale,cv
-         e.g.: 0,2019-01,2,181,40
-       */
-      const offersTotalCsv = await fetchCsv('data/offers_total.csv');
-      const offersTotalRows = parseCsv(offersTotalCsv);
-      for (let row of offersTotalRows) {
-        // e.g. row = ["0","2019-01","2","181","40"]
-        const dateStr   = row[1];
-        const genStr    = row[2];
-        const generalStr= row[3];
-        const cvStr     = row[4];
-        dateLabels.push(dateStr);
-        totalDataOffersGen.push(parseFloat(genStr));
-        totalDataOffersGeneral.push(parseFloat(generalStr));
-        totalDataOffersCV.push(parseFloat(cvStr));
+      /*
+        CSV #1: offers_total.csv with columns:
+        index,ia générative,ia générale,cv
+        e.g.
+        0,2,181,40
+        1,2,195,53
+        2,6,752,195
+        ...
+        72,...
+      */
+      const totalCsv = await fetchCsv('data/offers_total.csv');
+      const totalRows = parseCsv(totalCsv);
+      for (let row of totalRows) {
+        // row = ["0","2","181","40"]
+        const idx = parseInt(row[0]);
+        const valGen = parseFloat(row[1]);       // ia générative
+        const valGeneral = parseFloat(row[2]);   // ia générale
+        const valCV = parseFloat(row[3]);        // cv
+
+        // Convert index to "Q1 2019", "Q2 2019", etc.
+        quarterLabels.push( quarterLabelFromIndex(idx) );
+
+        totalDataOffersGen.push(valGen);
+        totalDataOffersGeneral.push(valGeneral);
+        totalDataOffersCV.push(valCV);
       }
 
-      /* 2) OFFERS: load share data
-         Suppose offers_share.csv has columns:
-         index,date,share_gen,share_general,share_cv
-         e.g.: 0,2019-01,0.0002390520,0.0216342074,0.0047810403
-       */
-      const offersShareCsv = await fetchCsv('data/offers_share.csv');
-      const offersShareRows = parseCsv(offersShareCsv);
-      for (let row of offersShareRows) {
-        // e.g. ["0","2019-01","0.0002390520","0.0216342074","0.0047810403"]
-        shareDataOffersGen.push(parseFloat(row[2]));
-        shareDataOffersGeneral.push(parseFloat(row[3]));
-        shareDataOffersCV.push(parseFloat(row[4]));
+      /*
+        CSV #2: offers_share.csv with columns:
+        index,ia générative,ia générale,cv
+        e.g.
+        0,0.000239052,0.0216342,0.004781
+        1,0.000215289,0.0209906,0.005705
+        ...
+        72,...
+      */
+      const shareCsv = await fetchCsv('data/offers_share.csv');
+      const shareRows = parseCsv(shareCsv);
+      for (let row of shareRows) {
+        // row = ["0","0.000239052","0.0216342","0.004781"]
+        shareDataOffersGen.push( parseFloat(row[1]) );
+        shareDataOffersGeneral.push( parseFloat(row[2]) );
+        shareDataOffersCV.push( parseFloat(row[3]) );
       }
 
-      // Create the Offers chart
+      // Now create the charts
       createOffersChart();
-
-      /* 3) ZONES: load total data
-         Suppose zones_total.csv has columns:
-         index,zone_name,ia_offers
-         e.g.: 0,Saclay,7179
-       */
-      const zonesTotalCsv = await fetchCsv('data/zones_total.csv');
-      const zonesTotalRows = parseCsv(zonesTotalCsv);
-      for (let row of zonesTotalRows) {
-        // e.g. ["0","Saclay","7179"]
-        zones.push(row[1]);
-        zonesTotal.push(parseFloat(row[2]));
-      }
-
-      /* 4) ZONES: load share data
-         Suppose zones_share.csv has columns:
-         index,zone_name,share_ia
-         e.g.: 0,Saclay,0.008375850389741304
-       */
-      const zonesShareCsv = await fetchCsv('data/zones_share.csv');
-      const zonesShareRows = parseCsv(zonesShareCsv);
-      for (let row of zonesShareRows) {
-        // e.g. ["0","Saclay","0.008375850389741304"]
-        zonesShare.push(parseFloat(row[2]));
-      }
-
-      // Create the Zones chart
-      createZonesChart();
-
-      // Create the mock charts for Sectors & Adopters
       createSectorsChart();
+      createZonesChart();
       createAdoptersChart();
 
     } catch (err) {
