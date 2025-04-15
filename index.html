@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>AI-tracker</title>
-  <!-- Chart.js (CDN) -->
+  <!-- Include Chart.js (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* Global styles */
@@ -18,7 +18,6 @@
       background-color: #f2f2f2;
       padding: 10px;
     }
-    /* 3-column flex container for logo (left), title (center), optional right block */
     .header-top {
       display: flex;
       align-items: center;
@@ -33,7 +32,7 @@
       justify-content: flex-start;
     }
     .logo {
-      height: 90px;
+      height: 40px;
       margin-left: 10px;
     }
     .center-block {
@@ -46,10 +45,7 @@
       margin: 0;
       font-size: 1.8em;
     }
-    .right-block {
-      /* empty placeholder if needed */
-    }
-    /* Navigation bar below the top bar */
+    .right-block { /* empty placeholder if needed */ }
     nav {
       display: flex;
       justify-content: center;
@@ -68,7 +64,7 @@
     }
 
     .page {
-      display: none; /* all pages hidden by default; only the active one is yyshown */
+      display: none; /* all pages hidden by default; only the active one is shown */
       padding: 20px;
     }
     .active {
@@ -348,7 +344,7 @@
   }
 
   function parseCsv(csvText) {
-    // skip the first line (header), then parse each subsequent line
+    // skip the first line (header), parse subsequent lines
     const lines = csvText.trim().split('\n');
     const rows = [];
     for (let i = 1; i < lines.length; i++) {
@@ -358,20 +354,22 @@
   }
 
   /****************************************************
-   * QUARTER LABELS from "index"
-   * e.g. 0 -> Q1 2019, 1 -> Q2 2019, 2 -> Q3 2019, etc.
+   * Generate labels from monthly index (starting Jan 2019)
+   * i=0 -> "2019-01", i=1 -> "2019-02", ...
    ****************************************************/
-  function quarterLabelFromIndex(i) {
+  function monthLabelFromIndex(i) {
     const baseYear = 2019;
-    const year = baseYear + Math.floor(i / 4);
-    const quarter = (i % 4) + 1;
-    return `Q${quarter} ${year}`;
+    const totalMonths = i; // 0,1,2,... 
+    const year = baseYear + Math.floor(totalMonths / 12);
+    const month = (totalMonths % 12) + 1; // 1..12
+    const mm = String(month).padStart(2, '0'); 
+    return `${year}-${mm}`; // e.g. "2019-01"
   }
 
   /****************************************************
    * Data arrays for the FIRST CHART (Offers)
    ****************************************************/
-  let quarterLabels = [];
+  let monthLabels = [];
   let totalDataOffersGen = [];
   let totalDataOffersGeneral = [];
   let totalDataOffersCV = [];
@@ -410,7 +408,7 @@
     offersChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: quarterLabels,
+        labels: monthLabels, // e.g. ["2019-01","2019-02","2019-03", ...]
         datasets: [
           {
             label: 'IA Générative',
@@ -466,9 +464,7 @@
           }
         ]
       },
-      options: {
-        responsive: true
-      }
+      options: { responsive: true }
     });
   }
 
@@ -519,9 +515,7 @@
           }
         ]
       },
-      options: {
-        responsive: true
-      }
+      options: { responsive: true }
     });
   }
 
@@ -538,19 +532,18 @@
         1,2,195,53
         2,6,752,195
         ...
-        72,...
       */
-      const totalCsv = await fetchCsv('data/offers_total.csv');
-      const totalRows = parseCsv(totalCsv);
+      const totalCsvText = await fetchCsv('data/offers_total.csv');
+      const totalRows = parseCsv(totalCsvText);
       for (let row of totalRows) {
-        // row = ["0","2","181","40"]
-        const idx = parseInt(row[0]);
-        const valGen = parseFloat(row[1]);       // ia générative
-        const valGeneral = parseFloat(row[2]);   // ia générale
-        const valCV = parseFloat(row[3]);        // cv
+        // e.g. row = ["0","2","181","40"]
+        const i = parseInt(row[0]);           // e.g. 0 => Jan 2019
+        const valGen = parseFloat(row[1]);    // "ia générative"
+        const valGeneral = parseFloat(row[2]); // "ia générale"
+        const valCV = parseFloat(row[3]);     // "cv"
 
-        // Convert index to "Q1 2019", "Q2 2019", etc.
-        quarterLabels.push( quarterLabelFromIndex(idx) );
+        // Convert index to monthly label starting 01/2019
+        monthLabels.push( monthLabelFromIndex(i) );
 
         totalDataOffersGen.push(valGen);
         totalDataOffersGeneral.push(valGeneral);
@@ -564,18 +557,17 @@
         0,0.000239052,0.0216342,0.004781
         1,0.000215289,0.0209906,0.005705
         ...
-        72,...
       */
-      const shareCsv = await fetchCsv('data/offers_share.csv');
-      const shareRows = parseCsv(shareCsv);
+      const shareCsvText = await fetchCsv('data/offers_share.csv');
+      const shareRows = parseCsv(shareCsvText);
       for (let row of shareRows) {
-        // row = ["0","0.000239052","0.0216342","0.004781"]
+        // row might be ["0","0.000239052","0.0216342","0.004781"]
         shareDataOffersGen.push( parseFloat(row[1]) );
         shareDataOffersGeneral.push( parseFloat(row[2]) );
         shareDataOffersCV.push( parseFloat(row[3]) );
       }
 
-      // Now create the charts
+      // Create the charts
       createOffersChart();
       createSectorsChart();
       createZonesChart();
