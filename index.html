@@ -354,7 +354,7 @@
     return await resp.text();
   }
 
-  // Updated parseCsv to correctly handle commas inside quoted fields.
+  // Updated parseCsv to correctly handle commas inside quoted fields and log the parsed rows for debugging.
   function parseCsv(csvText) {
     const lines = csvText.trim().split('\n');
     const rows = [];
@@ -363,7 +363,7 @@
       let cells = lines[i].split(splitPattern);
       cells = cells.map(cell => {
         cell = cell.trim();
-        if(cell.startsWith('"') && cell.endsWith('"')){
+        if (cell.startsWith('"') && cell.endsWith('"')){
           cell = cell.substring(1, cell.length - 1);
           cell = cell.replace(/""/g, '"');
         }
@@ -371,6 +371,7 @@
       });
       rows.push(cells);
     }
+    console.log("Parsed CSV rows:", rows); // Debug: show CSV rows
     return rows;
   }
 
@@ -542,7 +543,7 @@
     recolorMap();
   }
   function recolorMap(){
-    // pick column name
+    // pick column name based on toggles
     let colName;
     if(mapOffersAI==='ai' && mapOffersMode==='total'){
       colName='ia';
@@ -567,9 +568,13 @@
       attribution:'&copy; OpenStreetMap'
     }).addTo(mapOffers);
 
+    // Loop through each row from CSV map data.
     mapData.forEach(row=>{
       try{
-        const geo = JSON.parse(row.geometry); // JSON string now correctly parsed
+        console.log("Raw geometry string for row:", row.geometry); // Debug: log the CSV geometry string
+        const geo = JSON.parse(row.geometry);
+        console.log("Parsed geoJSON for row:", geo); // Debug: log the parsed GeoJSON
+
         const layer = L.geoJSON(geo, {
           style: {
             fillColor:'#ccc',
@@ -578,9 +583,10 @@
             fillOpacity:0.6
           }
         }).addTo(mapOffers);
+
         mapGeoLayers.push({ layer, rowData: row });
 
-        // optional popup
+        // Bind an optional popup for debugging
         layer.bindPopup(`
           <b>${row['Nom Officiel Zone emploi 2020']}</b><br/>
           AI: ${row.ia}<br/>
@@ -592,7 +598,6 @@
         console.warn("Invalid geometry for row:", row["Nom Officiel Zone emploi 2020"], err);
       }
     });
-
     recolorMap();
   }
 
@@ -662,7 +667,7 @@
         const mapCsv = await fetchCsv('data/map_offers.csv');
         const mapRows = parseCsv(mapCsv);
         for(let row of mapRows){
-          // row= [ zoneName, geometry, ia, ia_rel, ia générative, ia générative_rel, total_offers ]
+          // row = [ zoneName, geometry, ia, ia_rel, ia générative, ia générative_rel, total_offers ]
           let obj = {
             'Nom Officiel Zone emploi 2020': row[0],
             geometry: row[1],
