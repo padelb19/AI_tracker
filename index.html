@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <title>AI-tracker</title>
 
-  <!-- Chart.js (for the first two dashboards) -->
+  <!-- Chart.js (for Offers + Sectors dashboards) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Leaflet (for the map-based third dashboard) -->
-  <link
+  <!-- Leaflet (for the Map dashboard) -->
+  <link 
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-1yXY5T2Ec8AIWoWTRfVdfo4X0O6SC1dLL4f72gDxGJc="
@@ -21,7 +21,7 @@
   ></script>
 
   <style>
-    /* Basic Global Styles */
+    /* Global styles */
     body {
       margin: 0;
       padding: 0;
@@ -60,7 +60,8 @@
       margin: 0;
       font-size: 1.8em;
     }
-    .right-block {}
+    .right-block { /* placeholder if needed */ }
+
     nav {
       display: flex;
       justify-content: center;
@@ -79,7 +80,7 @@
     }
 
     .page {
-      display: none;
+      display: none; /* hidden by default; only the active one is shown */
       padding: 20px;
     }
     .active {
@@ -155,8 +156,12 @@
       max-width: 800px;
       margin: 0 auto;
     }
-    #adoptersSection .chart-container {
-      max-width: 400px; /* narrower for pie chart */
+
+    /* Third Dashboard (Map) */
+    #mapOffersSection .map-container {
+      width: 600px;
+      height: 600px;
+      margin: 0 auto; /* center */
     }
 
     /* Projects Page */
@@ -172,13 +177,6 @@
       border-bottom: 1px solid #ccc;
       padding-bottom: 5px;
       margin-bottom: 10px;
-    }
-
-    /* MAP styling for the 3rd Dashboard */
-    #mapOffersSection .map-container {
-      width: 600px;
-      height: 600px;
-      margin: 0 auto; /* center */
     }
   </style>
 </head>
@@ -214,7 +212,7 @@
     the AI-tracker monitors the growing adoption of this technology within the French economy.
   </div>
 
-  <!-- Additional Figures (mock examples) -->
+  <!-- Additional Figures (mock) -->
   <div class="additional-figures">
     <!-- AI Figures -->
     <h3>Additional Key Figures - AI</h3>
@@ -267,14 +265,15 @@
 <!-- Dashboards Page -->
 <div id="dashboards" class="page">
   <h2>Dashboards</h2>
+
+  <!-- Sub-nav for only the two first + map -->
   <div class="sub-nav">
     <button onclick="scrollToSection('totalOffersSection')">Total Offers</button>
     <button onclick="scrollToSection('sectorsSection')">Sectors</button>
     <button onclick="scrollToSection('mapOffersSection')">Map</button>
-    <button onclick="scrollToSection('adoptersSection')">Adopters</button>
   </div>
 
-  <!-- 1) Evolution of total AI offers (unchanged) -->
+  <!-- 1) Offers Dashboard -->
   <div id="totalOffersSection" class="chart-section">
     <h3>Evolution of AI-Related Job Offers</h3>
     <div class="chart-controls">
@@ -285,7 +284,7 @@
     </div>
   </div>
 
-  <!-- 2) Firms adopting AI by sector (unchanged) -->
+  <!-- 2) Sectors Dashboard -->
   <div id="sectorsSection" class="chart-section">
     <h3>Firms Adopting AI by Sector</h3>
     <div class="chart-controls">
@@ -297,27 +296,18 @@
     </div>
   </div>
 
-  <!-- 3) Map of French Zones d’Emplois -->
+  <!-- 3) Map Dashboard (the new one) -->
   <div id="mapOffersSection" class="chart-section">
     <h3>Map of French Zones d’Emplois</h3>
     <div class="chart-controls">
       <button onclick="toggleMapTotalShare()">Toggle Total / Share</button>
       <button onclick="toggleMapAiGen()">Toggle AI / Generative AI</button>
     </div>
-    <!-- Leaflet map container -->
     <div class="map-container" id="mapOffers"></div>
-  </div>
-
-  <!-- 4) Composition of AI adopters (mock) -->
-  <div id="adoptersSection" class="chart-section">
-    <h3>Composition of AI Adopters</h3>
-    <div class="chart-container">
-      <canvas id="adoptersChart"></canvas>
-    </div>
   </div>
 </div>
 
-<!-- Projects Page -->
+<!-- Projects Page (unchanged) -->
 <div id="projects" class="page">
   <h2>Projects</h2>
   <section class="authors">
@@ -342,7 +332,7 @@
 
 <script>
   /****************************************************
-   * Page Navigation
+   * Basic Page Navigation
    ****************************************************/
   function showPage(pageId) {
     document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
@@ -356,74 +346,74 @@
   }
 
   /****************************************************
-   * CSV Fetching & Parsing (generic)
+   * CSV fetch & parse
    ****************************************************/
-  async function fetchCsv(url){
+  async function fetchCsv(url) {
     const resp = await fetch(url);
-    if(!resp.ok) throw new Error(`Failed to fetch ${url}`);
+    if (!resp.ok) throw new Error(`Failed to fetch ${url}`);
     return await resp.text();
   }
-  function parseCsv(csvText){
+  function parseCsv(csvText) {
     const lines = csvText.trim().split('\n');
     const rows = [];
-    for(let i=1; i<lines.length;i++){
+    for (let i=1; i<lines.length; i++){
       rows.push(lines[i].split(','));
     }
     return rows;
   }
 
   /****************************************************
-   * 1) FIRST CHART (Offers) - same code
+   * 1) OFFERS CHART
    ****************************************************/
   let offersChart;
-  let offersMode='total';
+  let offersMode = 'total';
 
-  let dateLabels=[];
-  let totalDataOffersGen=[];
-  let totalDataOffersGeneral=[];
-  let totalDataOffersCV=[];
+  let dateLabels = [];
+  let totalDataOffersGen = [];
+  let totalDataOffersGeneral = [];
+  let totalDataOffersCV = [];
 
-  let shareDataOffersGen=[];
-  let shareDataOffersGeneral=[];
-  let shareDataOffersCV=[];
+  let shareDataOffersGen = [];
+  let shareDataOffersGeneral = [];
+  let shareDataOffersCV = [];
 
-  // index => "YYYY-MM" format
+  // month-based label
   function monthLabel(i){
     const baseYear=2019;
-    const year= baseYear + Math.floor(i/12);
-    const month=(i%12)+1;
+    const year = baseYear + Math.floor(i/12);
+    const month = (i%12)+1;
     return `${year}-${String(month).padStart(2,"0")}`;
   }
 
   function createOffersChart(){
-    const ctx=document.getElementById("offersChart").getContext('2d');
-    offersChart=new Chart(ctx,{
-      type:'bar',
-      data:{
+    const ctx = document.getElementById("offersChart").getContext("2d");
+    offersChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
         labels: dateLabels,
-        datasets:[
+        datasets: [
           {
-            label:'IA Générative',
+            label: 'IA Générative',
             data: totalDataOffersGen,
-            backgroundColor:'rgba(255,99,132,0.7)'
+            backgroundColor: 'rgba(255, 99, 132, 0.7)'
           },
           {
-            label:'IA Générale',
+            label: 'IA Générale',
             data: totalDataOffersGeneral,
-            backgroundColor:'rgba(75,192,192,0.7)'
+            backgroundColor: 'rgba(75, 192, 192, 0.7)'
           },
           {
-            label:'Computer Vision',
+            label: 'Computer Vision',
             data: totalDataOffersCV,
-            backgroundColor:'rgba(54,162,235,0.7)'
+            backgroundColor: 'rgba(54, 162, 235, 0.7)'
           }
         ]
       },
-      options:{
-        responsive:true,
-        scales:{
-          x:{ stacked:true },
-          y:{ stacked:true }
+      options: {
+        responsive: true,
+        scales: {
+          x: { stacked: true },
+          y: { stacked: true }
         }
       }
     });
@@ -446,7 +436,7 @@
   }
 
   /****************************************************
-   * 2) SECOND CHART (Sectors) - same code
+   * 2) SECTORS CHART
    ****************************************************/
   let sectorsChart;
   let sectorsMode='total';   // or 'share'
@@ -459,15 +449,14 @@
   let industryShareNonGen=[], serviceShareNonGen=[];
 
   function quarterLabel(i){
-    // i=0 => Q1 2019, etc
-    const baseYear=2019;
-    const year= baseYear + Math.floor(i/4);
-    const q=(i%4)+1;
+    const baseYear = 2019;
+    const year = baseYear + Math.floor(i/4);
+    const q = (i % 4) + 1;
     return `Q${q} ${year}`;
   }
 
   function createSectorsChart(){
-    const ctx=document.getElementById('sectorsChart').getContext('2d');
+    const ctx=document.getElementById("sectorsChart").getContext('2d');
     sectorsChart=new Chart(ctx,{
       type:'bar',
       data:{
@@ -476,12 +465,12 @@
           {
             label:'Industrie',
             data:[],
-            backgroundColor:'rgba(153,102,255,0.7)'
+            backgroundColor:'rgba(153, 102, 255, 0.7)'
           },
           {
             label:'Services',
             data:[],
-            backgroundColor:'rgba(255,205,86,0.7)'
+            backgroundColor:'rgba(255, 205, 86, 0.7)'
           }
         ]
       },
@@ -489,27 +478,21 @@
     });
     updateSectorsChart();
   }
-
   function updateSectorsChart(){
     let indData, servData;
     if(sectorsMode==='total' && sectorsAIType==='genAI'){
-      indData=industryTotalGen;
-      servData=serviceTotalGen;
+      indData=industryTotalGen; servData=serviceTotalGen;
     } else if(sectorsMode==='total' && sectorsAIType==='nonGenAI'){
-      indData=industryTotalNonGen;
-      servData=serviceTotalNonGen;
+      indData=industryTotalNonGen; servData=serviceTotalNonGen;
     } else if(sectorsMode==='share' && sectorsAIType==='genAI'){
-      indData=industryShareGen;
-      servData=serviceShareGen;
+      indData=industryShareGen; servData=serviceShareGen;
     } else {
-      indData=industryShareNonGen;
-      servData=serviceShareNonGen;
+      indData=industryShareNonGen; servData=serviceShareNonGen;
     }
     sectorsChart.data.datasets[0].data=indData;
     sectorsChart.data.datasets[1].data=servData;
     sectorsChart.update();
   }
-
   function toggleSectorsTotalShare(){
     sectorsMode=(sectorsMode==='total')?'share':'total';
     updateSectorsChart();
@@ -520,19 +503,16 @@
   }
 
   /****************************************************
-   * 3) THIRD DASHBOARD: MAP
-   *    We'll load "map_offers.csv"
+   * 3) MAP OFFERS
    ****************************************************/
-  let mapOffers;         // the Leaflet map instance
+  let mapOffers;           // Leaflet map instance
   let mapOffersMode='total';  // or 'share'
-  let mapOffersAI='ai';       // or 'gen' (generative)
-  let mapGeoLayers=[];  // store each polygon layer + row data
+  let mapOffersAI='ai';       // or 'gen'
+  let mapGeoLayers=[];     // store each polygon layer + row data
+  let mapData=[];          // after CSV parse
 
-  let mapData=[];       // after CSV parse
-
-  // color scale function
+  // color scale
   function pickColor(val){
-    // adapt to your data range
     if(isNaN(val)) return '#cccccc';
     if(val<10) return '#fee5d9';
     if(val<50) return '#fcae91';
@@ -549,13 +529,8 @@
     mapOffersAI=(mapOffersAI==='ai')?'gen':'ai';
     recolorMap();
   }
-
   function recolorMap(){
-    // pick the column name
-    // if ai + total => 'ia'
-    // if ai + share => 'ia_rel'
-    // if gen + total => 'ia générative'
-    // if gen + share => 'ia générative_rel'
+    // pick column name
     let colName;
     if(mapOffersAI==='ai' && mapOffersMode==='total'){
       colName='ia';
@@ -566,27 +541,23 @@
     } else {
       colName='ia générative_rel';
     }
-
-    mapGeoLayers.forEach(layerObj=>{
-      const row=layerObj.rowData;
+    mapGeoLayers.forEach(obj=>{
+      const row=obj.rowData;
       const val=parseFloat(row[colName]);
-      const color= pickColor(val);
-      layerObj.layer.setStyle({ fillColor: color });
+      const color=pickColor(val);
+      obj.layer.setStyle({ fillColor: color });
     });
   }
 
   function createMapOffers(){
-    // build the map
-    mapOffers= L.map('mapOffers').setView([46.8,2.0],6); // center of France
-    // add a tile layer
+    mapOffers= L.map('mapOffers').setView([46.8,2.0],6);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
       attribution:'&copy; OpenStreetMap'
     }).addTo(mapOffers);
 
-    // loop over mapData, parse geometry, add polygon
     mapData.forEach(row=>{
       try{
-        const geo= JSON.parse(row.geometry); // IMPORTANT => parse JSON string
+        const geo= JSON.parse(row.geometry); // parse string -> geojson object
         const layer= L.geoJSON(geo,{
           style:{
             fillColor:'#ccc',
@@ -595,7 +566,7 @@
             fillOpacity:0.6
           }
         }).addTo(mapOffers);
-        mapGeoLayers.push({layer, rowData: row});
+        mapGeoLayers.push({ layer, rowData: row });
 
         // optional popup
         layer.bindPopup(`
@@ -606,79 +577,31 @@
           Share GenAI: ${row['ia générative_rel']}
         `);
       } catch(err){
-        console.warn("Invalid geometry for row:",row["Nom Officiel Zone emploi 2020"], err);
+        console.warn("Invalid geometry for row:", row["Nom Officiel Zone emploi 2020"], err);
       }
     });
 
-    // apply initial coloring
     recolorMap();
   }
 
   /****************************************************
-   * 4) MOCK: ZONES CHART
-   ****************************************************/
-  let zonesChart;
-  function createZonesChart(){
-    const ctx=document.getElementById("zonesChart").getContext('2d');
-    zonesChart=new Chart(ctx,{
-      type:'bar',
-      data:{
-        labels:["Paris","Lyon","Marseille"],
-        datasets:[{
-          label:'IA Offers',
-          data:[500,300,200],
-          backgroundColor:'rgba(255,159,64,0.7)'
-        }]
-      },
-      options:{
-        indexAxis:'y',
-        responsive:true
-      }
-    });
-  }
-
-  /****************************************************
-   * 5) MOCK: ADOPTERS CHART
-   ****************************************************/
-  let adoptersChart;
-  function createAdoptersChart(){
-    const ctx=document.getElementById("adoptersChart").getContext('2d');
-    adoptersChart=new Chart(ctx,{
-      type:'pie',
-      data:{
-        labels:["PME","ETI","GE"],
-        datasets:[{
-          label:'Composition of AI Adopters',
-          data:[50,30,20],
-          backgroundColor:[
-            'rgba(54,162,235,0.7)',
-            'rgba(255,206,86,0.7)',
-            'rgba(75,192,192,0.7)'
-          ]
-        }]
-      },
-      options:{responsive:true}
-    });
-  }
-
-  /****************************************************
-   * onload: fetch CSV & build
+   * On load: fetch CSV & build
    ****************************************************/
   window.onload= async function(){
     try{
-      /**** 1) FIRST CHART: offers_total.csv & offers_share.csv ****/
+      // 1) OFFERS
       {
-        const totalCsv=await fetchCsv('data/offers_total.csv');
-        const totalRows=parseCsv(totalCsv);
+        const totalCsv= await fetchCsv('data/offers_total.csv');
+        const totalRows= parseCsv(totalCsv);
         for(let row of totalRows){
-          const i=parseInt(row[0]);
+          const i= parseInt(row[0]);
           dateLabels.push(monthLabel(i));
           totalDataOffersGen.push(parseFloat(row[1]));
           totalDataOffersGeneral.push(parseFloat(row[2]));
           totalDataOffersCV.push(parseFloat(row[3]));
         }
-        const shareCsv=await fetchCsv('data/offers_share.csv');
-        const shareRows=parseCsv(shareCsv);
+        const shareCsv= await fetchCsv('data/offers_share.csv');
+        const shareRows= parseCsv(shareCsv);
         for(let row of shareRows){
           shareDataOffersGen.push(parseFloat(row[1]));
           shareDataOffersGeneral.push(parseFloat(row[2]));
@@ -686,9 +609,9 @@
         }
       }
 
-      /**** 2) SECOND CHART: four CSV for total/share + genAI/nonGenAI ****/
+      // 2) SECTORS
       {
-        // two_sectors_total_gen.csv => index,Industrie,Services
+        // total_gen
         const tgenText=await fetchCsv('data/two_sectors_total_gen.csv');
         const tgenRows=parseCsv(tgenText);
         for(let row of tgenRows){
@@ -699,38 +622,38 @@
           industryTotalGen.push(parseFloat(row[1]));
           serviceTotalGen.push(parseFloat(row[2]));
         }
-
-        const tnongenText=await fetchCsv('data/two_sectors_total_nongen.csv');
-        const tnongenRows=parseCsv(tnongenText);
+        // total_nongen
+        const tnongen=await fetchCsv('data/two_sectors_total_nongen.csv');
+        const tnongenRows=parseCsv(tnongen);
         for(let row of tnongenRows){
           industryTotalNonGen.push(parseFloat(row[1]));
           serviceTotalNonGen.push(parseFloat(row[2]));
         }
-
-        const sgenText=await fetchCsv('data/two_sectors_share_gen.csv');
-        const sgenRows=parseCsv(sgenText);
+        // share_gen
+        const sgenText= await fetchCsv('data/two_sectors_share_gen.csv');
+        const sgenRows= parseCsv(sgenText);
         for(let row of sgenRows){
           industryShareGen.push(parseFloat(row[1]));
           serviceShareGen.push(parseFloat(row[2]));
         }
-
-        const snongenText=await fetchCsv('data/two_sectors_share_nongen.csv');
-        const snongenRows=parseCsv(snongenText);
+        // share_nongen
+        const snongenText= await fetchCsv('data/two_sectors_share_nongen.csv');
+        const snongenRows= parseCsv(snongenText);
         for(let row of snongenRows){
           industryShareNonGen.push(parseFloat(row[1]));
           serviceShareNonGen.push(parseFloat(row[2]));
         }
       }
 
-      /**** 3) MAP: "map_offers.csv" => columns for geometry in JSON string ****/
+      // 3) MAP
       {
-        const mapCsv=await fetchCsv('data/map_offers.csv');
-        const mapRows=parseCsv(mapCsv); 
-        // each row => [ zoneName, geometry, ia, ia_rel, ia générative, ia générative_rel, total_offers... ]
+        const mapCsv= await fetchCsv('data/map_offers.csv');
+        const mapRows= parseCsv(mapCsv);
         for(let row of mapRows){
+          // row= [ zoneName, geometry, ia, ia_rel, ia générative, ia générative_rel, total_offers ]
           let obj={
             'Nom Officiel Zone emploi 2020': row[0],
-            geometry: row[1],   // JSON string for the polygon
+            geometry: row[1],
             ia: row[2],
             ia_rel: row[3],
             'ia générative': row[4],
@@ -741,12 +664,11 @@
         }
       }
 
-      // Build the charts
+      // Build the 2 charts + map
       createOffersChart();
       createSectorsChart();
-      createZonesChart();
-      createAdoptersChart();
-      createMapOffers();  // new map-based dashboard
+      createMapOffers();
+
     }catch(err){
       console.error("Error loading data:", err);
     }
