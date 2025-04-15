@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>AI-tracker</title>
-  <!-- Chart.js (CDN) -->
+  <!-- Include Chart.js (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* Global styles */
@@ -18,7 +18,7 @@
       background-color: #f2f2f2;
       padding: 10px;
     }
-    /* Top bar with 3 columns for logo / center title / right block */
+    /* 3-column flex for logo, center title, optional right block */
     .header-top {
       display: flex;
       align-items: center;
@@ -46,7 +46,7 @@
       margin: 0;
       font-size: 1.8em;
     }
-    .right-block { /* empty placeholder if needed */ }
+    .right-block {}
     /* Nav bar */
     nav {
       display: flex;
@@ -143,8 +143,9 @@
       max-width: 800px;
       margin: 0 auto;
     }
+    /* Pie chart narrower */
     #adoptersSection .chart-container {
-      max-width: 400px; /* narrower for the pie chart */
+      max-width: 400px;
     }
 
     /* Projects Page */
@@ -248,7 +249,6 @@
 <!-- DASHBOARDS PAGE -->
 <div id="dashboards" class="page">
   <h2>Dashboards</h2>
-  <!-- Sub-navigation for quick jumps -->
   <div class="sub-nav">
     <button onclick="scrollToSection('totalOffersSection')">Total Offers</button>
     <button onclick="scrollToSection('sectorsSection')">Sectors</button>
@@ -256,7 +256,7 @@
     <button onclick="scrollToSection('adoptersSection')">Adopters</button>
   </div>
 
-  <!-- 1) Evolution of total AI offers (just as an example from previous code) -->
+  <!-- 1) Evolution of total AI offers (from your "offers" CSVs) -->
   <div id="totalOffersSection" class="chart-section">
     <h3>Evolution of AI-Related Job Offers</h3>
     <div class="chart-controls">
@@ -267,13 +267,11 @@
     </div>
   </div>
 
-  <!-- 2) Firms adopting AI by sector (New: 2 toggles) -->
+  <!-- 2) Firms adopting AI by sector -->
   <div id="sectorsSection" class="chart-section">
     <h3>Firms Adopting AI by Sector</h3>
     <div class="chart-controls">
-      <!-- First toggle: total vs share -->
       <button onclick="toggleSectorsTotalShare()">Toggle Total / Share</button>
-      <!-- Second toggle: generative AI vs. non-generative -->
       <button onclick="toggleSectorsGenNonGen()">Toggle GenAI / Non-GenAI</button>
     </div>
     <div class="chart-container">
@@ -281,7 +279,7 @@
     </div>
   </div>
 
-  <!-- 3) Ranking of French Zones d’Emplois (mock) -->
+  <!-- 3) Ranking of French Zones d'emploi (mock) -->
   <div id="locationSection" class="chart-section">
     <h3>Ranking of French Zones d’Emplois</h3>
     <div class="chart-container">
@@ -289,7 +287,7 @@
     </div>
   </div>
 
-  <!-- 4) Composition of AI Adopters (mock) -->
+  <!-- 4) Composition of AI adopters (mock) -->
   <div id="adoptersSection" class="chart-section">
     <h3>Composition of AI Adopters</h3>
     <div class="chart-container">
@@ -323,11 +321,10 @@
 
 <script>
   /****************************************************
-   * Page Navigation
+   * Simple page navigation
    ****************************************************/
   function showPage(pageId) {
-    const pages = document.querySelectorAll('.page');
-    pages.forEach(page => page.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
   }
   function scrollToSection(sectionId) {
@@ -338,28 +335,59 @@
   }
 
   /****************************************************
-   * 1) Minimal data for the FIRST CHART (mock example)
-   *    We'll just define some arrays or fetch CSV, as before.
+   * CSV fetch/parse helpers
    ****************************************************/
-  let monthLabels = ["2019-01","2019-02","2019-03","2019-04"];
-  let totalDataOffersGen = [2, 3, 5, 8];
-  let totalDataOffersGeneral = [10, 12, 15, 20];
-  let totalDataOffersCV = [4, 7, 6, 9];
+  async function fetchCsv(url) {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${url}`);
+    }
+    return await response.text();
+  }
+  function parseCsv(csvText) {
+    const lines = csvText.trim().split('\n');
+    const rows = [];
+    // skip first line if it’s a header
+    for (let i=1; i<lines.length; i++) {
+      rows.push(lines[i].split(','));
+    }
+    return rows;
+  }
 
-  let shareDataOffersGen = [0.0002, 0.0003, 0.0005, 0.0008];
-  let shareDataOffersGeneral = [0.001, 0.002, 0.003, 0.005];
-  let shareDataOffersCV = [0.0004, 0.0007, 0.0006, 0.0009];
-
-  let offersMode = 'total'; // or 'share'
+  /****************************************************
+   * 1) OFFERS CHART
+   * We'll load data from:
+   *    offers_total.csv => totalDataOffersGen, totalDataOffersGeneral, totalDataOffersCV
+   *    offers_share.csv => shareDataOffersGen, shareDataOffersGeneral, shareDataOffersCV
+   * index might represent month or quarter. We'll do a minimal label function.
+   ****************************************************/
   let offersChart;
+  let offersMode = 'total';
 
-  // We'll create this chart after we define a function
+  let dateLabels = [];
+  let totalDataOffersGen = [];
+  let totalDataOffersGeneral = [];
+  let totalDataOffersCV = [];
+
+  let shareDataOffersGen = [];
+  let shareDataOffersGeneral = [];
+  let shareDataOffersCV = [];
+
+  function labelFromIndex(i) {
+    // e.g. if i=0 => "Q1 2019", i=1 => "Q2 2019"
+    // or adapt to months, etc.
+    const baseYear = 2019;
+    const year = baseYear + Math.floor(i / 4);
+    const quarter = (i % 4) + 1;
+    return `Q${quarter} ${year}`;
+  }
+
   function createOffersChart() {
     const ctx = document.getElementById("offersChart").getContext("2d");
     offersChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: monthLabels,
+        labels: dateLabels,
         datasets: [
           {
             label: 'IA Générative',
@@ -387,7 +415,7 @@
       }
     });
   }
-  // Toggle for the first chart
+
   function toggleTotalShare(chartName) {
     if (chartName === 'offersChart') {
       offersMode = (offersMode === 'total') ? 'share' : 'total';
@@ -405,59 +433,39 @@
   }
 
   /****************************************************
-   * 2) SECOND CHART (Sectors: Industry vs Services)
-   *    We have 4 data sets:
-   *      - total genAI vs non-genAI
-   *      - share genAI vs non-genAI
-   *    Each for Industry & Service
+   * 2) SECTORS CHART: 4 CSV (for total/share, genAI/nonGenAI)
+   * We'll parse them into arrays, then have toggles.
    ****************************************************/
-
-  // Suppose we have a "quarters" array for the x-axis:
-  const quarters = ["Q1 2019","Q2 2019","Q3 2019","Q4 2019"];
-
-  // We'll define EIGHT arrays:
-  // Industry: totalGen, totalNon, shareGen, shareNon
-  // Service:  totalGen, totalNon, shareGen, shareNon
-
-  // 1) Industry total genAI
-  const indTotalGen = [100, 120, 130, 150];
-  // 2) Industry total non-genAI
-  const indTotalNon = [200, 220, 230, 240];
-  // 3) Industry share genAI
-  const indShareGen = [10, 12, 15, 20]; // example percentages
-  // 4) Industry share non-genAI
-  const indShareNon = [30, 35, 45, 50];
-
-  // 5) Service total genAI
-  const servTotalGen = [80, 90, 100, 120];
-  // 6) Service total non-genAI
-  const servTotalNon = [150, 170, 180, 190];
-  // 7) Service share genAI
-  const servShareGen = [9, 10, 11, 13];  // example
-  // 8) Service share non-genAI
-  const servShareNon = [20, 25, 26, 28];
-
-  // We'll keep track of the user’s chosen mode:
-  //   'total' or 'share'
-  //   'genAI' or 'nonGenAI'
-  let sectorsMode = 'total';
-  let sectorsAIType = 'genAI';
-
   let sectorsChart;
+  let sectorsMode = 'total';  // or 'share'
+  let sectorsAIType = 'genAI'; // or 'nonGenAI'
 
-  // We'll create 2 bars each quarter:
-  // dataset[0] => Industry
-  // dataset[1] => Service
+  // We'll store the x-axis labels (one label per row => Q1 2019 etc.)
+  let sectorsLabels = [];
+
+  // We have 8 arrays total:
+  let industryTotalGen = [];
+  let serviceTotalGen  = [];
+
+  let industryTotalNonGen = [];
+  let serviceTotalNonGen  = [];
+
+  let industryShareGen = [];
+  let serviceShareGen  = [];
+
+  let industryShareNonGen = [];
+  let serviceShareNonGen  = [];
+
   function createSectorsChart() {
     const ctx = document.getElementById("sectorsChart").getContext("2d");
     sectorsChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: quarters,
+        labels: sectorsLabels, // filled after loading CSV
         datasets: [
           {
             label: 'Industrie',
-            data: [], // we will fill in updateSectorsChart()
+            data: [], // set in updateSectorsChart()
             backgroundColor: 'rgba(153, 102, 255, 0.7)'
           },
           {
@@ -471,37 +479,39 @@
         responsive: true
       }
     });
-
-    // Fill the chart initially ( 'total' + 'genAI' by default )
+    // fill data for default mode (total + genAI)
     updateSectorsChart();
   }
 
-  // A function that picks the correct data arrays depending on the toggles
   function updateSectorsChart() {
+    let indData, servData;
     if (sectorsMode === 'total' && sectorsAIType === 'genAI') {
-      // Industry => indTotalGen, Services => servTotalGen
-      sectorsChart.data.datasets[0].data = indTotalGen;
-      sectorsChart.data.datasets[1].data = servTotalGen;
-    } else if (sectorsMode === 'total' && sectorsAIType === 'nonGenAI') {
-      sectorsChart.data.datasets[0].data = indTotalNon;
-      sectorsChart.data.datasets[1].data = servTotalNon;
-    } else if (sectorsMode === 'share' && sectorsAIType === 'genAI') {
-      sectorsChart.data.datasets[0].data = indShareGen;
-      sectorsChart.data.datasets[1].data = servShareGen;
-    } else if (sectorsMode === 'share' && sectorsAIType === 'nonGenAI') {
-      sectorsChart.data.datasets[0].data = indShareNon;
-      sectorsChart.data.datasets[1].data = servShareNon;
+      indData = industryTotalGen;
+      servData = serviceTotalGen;
     }
+    else if (sectorsMode === 'total' && sectorsAIType === 'nonGenAI') {
+      indData = industryTotalNonGen;
+      servData = serviceTotalNonGen;
+    }
+    else if (sectorsMode === 'share' && sectorsAIType === 'genAI') {
+      indData = industryShareGen;
+      servData = serviceShareGen;
+    }
+    else { // share + nonGenAI
+      indData = industryShareNonGen;
+      servData = serviceShareNonGen;
+    }
+    // set the arrays for the 2 datasets
+    sectorsChart.data.datasets[0].data = indData;
+    sectorsChart.data.datasets[1].data = servData;
+
     sectorsChart.update();
   }
 
-  // 1) Toggle total <-> share
   function toggleSectorsTotalShare() {
     sectorsMode = (sectorsMode === 'total') ? 'share' : 'total';
     updateSectorsChart();
   }
-
-  // 2) Toggle genAI <-> nonGenAI
   function toggleSectorsGenNonGen() {
     sectorsAIType = (sectorsAIType === 'genAI') ? 'nonGenAI' : 'genAI';
     updateSectorsChart();
@@ -559,17 +569,107 @@
   }
 
   /****************************************************
-   * On window load: build all charts
+   * Converting "index" to label for the second chart 
+   * (quarterly)
    ****************************************************/
-  window.onload = function() {
-    // 1) First chart (offers)
-    createOffersChart();
-    // 2) Second chart (sectors)
-    createSectorsChart();
-    // 3) Third chart (zones) mock
-    createZonesChart();
-    // 4) Adopters chart mock
-    createAdoptersChart();
+  function quarterLabel(i) {
+    const baseYear = 2019;
+    const year = baseYear + Math.floor(i / 4);
+    const quarter = (i % 4) + 1;
+    return `Q${quarter} ${year}`;
+  }
+
+  /****************************************************
+   * window.onload:
+   * 1) Load offers CSV (first chart)
+   * 2) Load the 4 CSV for second chart
+   * 3) Create charts
+   ****************************************************/
+  window.onload = async function() {
+    try {
+      /***** 1) FIRST CHART: load "offers_total.csv" & "offers_share.csv" *****/
+      {
+        // For example, "offers_total.csv" has columns:
+        // index,ia générative,ia générale,cv
+        // 0,2,181,40
+        // ...
+        const totalCsv = await fetchCsv('data/offers_total.csv');
+        const totalRows = parseCsv(totalCsv);
+        for (let row of totalRows) {
+          // e.g. row = ["0","2","181","40"]
+          const i = parseInt(row[0]);
+          dateLabels.push( labelFromIndex(i) );
+          totalDataOffersGen.push( parseFloat(row[1]) );
+          totalDataOffersGeneral.push( parseFloat(row[2]) );
+          totalDataOffersCV.push( parseFloat(row[3]) );
+        }
+
+        // "offers_share.csv" also columns: index,ia générative,ia générale,cv
+        const shareCsv = await fetchCsv('data/offers_share.csv');
+        const shareRows = parseCsv(shareCsv);
+        for (let row of shareRows) {
+          // e.g. row = ["0","0.0002","0.001","0.0004"]
+          shareDataOffersGen.push(parseFloat(row[1]));
+          shareDataOffersGeneral.push(parseFloat(row[2]));
+          shareDataOffersCV.push(parseFloat(row[3]));
+        }
+      }
+
+      /***** 2) SECOND CHART: load 4 CSVs: total_gen, total_nongen, share_gen, share_nongen *****/
+      {
+        // a) two_sectors_total_gen.csv with columns:
+        // index,Industrie,Services
+        // 0,100,80
+        // 1,120,90
+        const totalGenText = await fetchCsv('data/two_sectors_total_gen.csv');
+        const totalGenRows = parseCsv(totalGenText);
+        for (let row of totalGenRows) {
+          // e.g. row = ["0","100","80"]
+          const idx = parseInt(row[0]);
+          // fill the label array if needed
+          if (sectorsLabels.length <= idx) {
+            sectorsLabels.push( quarterLabel(idx) );
+          }
+          industryTotalGen.push( parseFloat(row[1]) );
+          serviceTotalGen.push( parseFloat(row[2]) );
+        }
+
+        // b) two_sectors_total_nongen.csv
+        const totalNonGenText = await fetchCsv('data/two_sectors_total_nongen.csv');
+        const totalNonGenRows = parseCsv(totalNonGenText);
+        for (let row of totalNonGenRows) {
+          // e.g. row = ["0","200","150"]
+          industryTotalNonGen.push( parseFloat(row[1]) );
+          serviceTotalNonGen.push( parseFloat(row[2]) );
+        }
+
+        // c) two_sectors_share_gen.csv
+        const shareGenText = await fetchCsv('data/two_sectors_share_gen.csv');
+        const shareGenRows = parseCsv(shareGenText);
+        for (let row of shareGenRows) {
+          // e.g. row = ["0","10","9"]
+          industryShareGen.push( parseFloat(row[1]) );
+          serviceShareGen.push( parseFloat(row[2]) );
+        }
+
+        // d) two_sectors_share_nongen.csv
+        const shareNonGenText = await fetchCsv('data/two_sectors_share_nongen.csv');
+        const shareNonGenRows = parseCsv(shareNonGenText);
+        for (let row of shareNonGenRows) {
+          // e.g. row = ["0","30","20"]
+          industryShareNonGen.push( parseFloat(row[1]) );
+          serviceShareNonGen.push( parseFloat(row[2]) );
+        }
+      }
+
+      // 3) Create all charts
+      createOffersChart();     // first chart
+      createSectorsChart();    // second chart
+      createZonesChart();      // mock
+      createAdoptersChart();   // mock
+    } catch(err) {
+      console.error("Error loading CSV data:", err);
+    }
   };
 </script>
 </body>
