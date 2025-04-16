@@ -7,7 +7,7 @@
   <!-- Chart.js (for Offers + Sectors dashboards) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Leaflet (for the Map dashboard), without SRI to avoid hash mismatch -->
+  <!-- Leaflet (for the Map dashboard), no SRI to avoid hash mismatch -->
   <link 
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -101,10 +101,6 @@
     .additional-figures {
       max-width: 1000px;
       margin: 40px auto;
-    }
-    .additional-figures h3 {
-      text-align: center;
-      margin-bottom: 20px;
     }
     .figures-row {
       display: flex;
@@ -204,58 +200,43 @@
   <p style="text-align:center;">
     Here you can find insights into the evolution of AI adoption by French firms, based on their recruitment data.
   </p>
-  
   <div class="explanation">
     This tracker is built using machine learning models on the JOCAS database, edited by the 
     French Ministry of Labor's DARES. By automatically detecting AI-related job offers, 
     the AI-tracker monitors the growing adoption of this technology within the French economy.
   </div>
 
-  <!-- Additional Figures (mock) -->
+  <!-- Key Figures from general_results.csv -->
   <div class="additional-figures">
-    <!-- AI Figures -->
-    <h3>Additional Key Figures - AI</h3>
+    <!-- Row 1: AI figures -->
     <div class="figures-row">
+      <!-- AI Offers -->
       <div class="key-figure-card">
-        <h4>Firms Having Recruited for AI (Total)</h4>
-        <p>8,500 (mock)</p>
+        <h4>Total AI Offers</h4>
+        <p id="aiOffersValue">...</p>
+        <p><small id="aiOffersLastQuarter">...</small></p>
       </div>
+      <!-- AI Firms -->
       <div class="key-figure-card">
-        <h4>New Recruiters Last Quarter</h4>
-        <p>400 (mock)</p>
-        <p><small>+5% vs. previous quarter (mock)</small></p>
-      </div>
-      <div class="key-figure-card">
-        <h4>Number of AI Offers (Total)</h4>
-        <p>45,000 (mock)</p>
-      </div>
-      <div class="key-figure-card">
-        <h4>AI Offers Last Quarter</h4>
-        <p>6,000 (mock)</p>
-        <p><small>+10% vs. previous quarter (mock)</small></p>
+        <h4>Firms Having Adopted AI</h4>
+        <p id="aiFirmsValue">...</p>
+        <p><small id="aiFirmsLastQuarter">...</small></p>
       </div>
     </div>
 
-    <!-- Generative AI Figures -->
-    <h3>Additional Key Figures - Generative AI</h3>
+    <!-- Row 2: GenAI figures -->
     <div class="figures-row">
+      <!-- GenAI Offers -->
       <div class="key-figure-card">
-        <h4>Firms Having Recruited for Generative AI (Total)</h4>
-        <p>2,000 (mock)</p>
+        <h4>Total GenAI Offers</h4>
+        <p id="genAiOffersValue">...</p>
+        <p><small id="genAiOffersLastQuarter">...</small></p>
       </div>
+      <!-- GenAI Firms -->
       <div class="key-figure-card">
-        <h4>New Recruiters Last Quarter</h4>
-        <p>150 (mock)</p>
-        <p><small>+8% vs. previous quarter (mock)</small></p>
-      </div>
-      <div class="key-figure-card">
-        <h4>Number of Generative AI Offers (Total)</h4>
-        <p>20,000 (mock)</p>
-      </div>
-      <div class="key-figure-card">
-        <h4>Generative AI Offers Last Quarter</h4>
-        <p>2,000 (mock)</p>
-        <p><small>+12% vs. previous quarter (mock)</small></p>
+        <h4>Firms Having Adopted GenAI</h4>
+        <p id="genAiFirmsValue">...</p>
+        <p><small id="genAiFirmsLastQuarter">...</small></p>
       </div>
     </div>
   </div>
@@ -306,7 +287,7 @@
   </div>
 </div>
 
-<!-- Projects Page (unchanged) -->
+<!-- Projects Page -->
 <div id="projects" class="page">
   <h2>Projects</h2>
   <section class="authors">
@@ -365,8 +346,7 @@
   function parseCsv(csvText) {
     const parsed = Papa.parse(csvText, { header: false, skipEmptyLines: true });
     console.log("Parsed CSV rows (with Papa Parse):", parsed.data);
-    // The first row is typically the header row,
-    // so we'll return everything after row 0:
+    // The first row is typically the header row, so slice(1) returns data only
     return parsed.data.slice(1);
   }
 
@@ -385,7 +365,6 @@
   let shareDataOffersGeneral = [];
   let shareDataOffersCV = [];
 
-  // month-based label
   function monthLabel(i){
     const baseYear=2019;
     const year = baseYear + Math.floor(i/12);
@@ -508,13 +487,12 @@
   /****************************************************
    * 3) MAP OFFERS
    ****************************************************/
-  let mapOffers;           // Leaflet map instance
-  let mapOffersMode='total';  // or 'share'
-  let mapOffersAI='ai';       // or 'gen'
-  let mapGeoLayers=[];     // store each polygon layer + row data
-  let mapData=[];          // after CSV parse
+  let mapOffers;           
+  let mapOffersMode='total';  
+  let mapOffersAI='ai';       
+  let mapGeoLayers=[];     
+  let mapData=[];          
 
-  // color scale
   function pickColor(val){
     if(isNaN(val)) return '#cccccc';
     if(val<10) return '#fee5d9';
@@ -533,7 +511,6 @@
     recolorMap();
   }
   function recolorMap(){
-    // pick column name based on toggles
     let colName;
     if(mapOffersAI==='ai' && mapOffersMode==='total'){
       colName='ia';
@@ -553,13 +530,11 @@
   }
 
   function createMapOffers(){
-    // Create Leaflet map
     mapOffers = L.map('mapOffers').setView([46.8,2.0],6);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
       attribution:'&copy; OpenStreetMap'
     }).addTo(mapOffers);
 
-    // Loop through each row from CSV map data.
     mapData.forEach(row=>{
       try{
         const geo = JSON.parse(row.geometry);
@@ -574,7 +549,6 @@
 
         mapGeoLayers.push({ layer, rowData: row });
 
-        // Optional popup
         layer.bindPopup(`
           <b>${row['Nom Officiel Zone emploi 2020']}</b><br/>
           AI: ${row.ia}<br/>
@@ -594,7 +568,41 @@
    ****************************************************/
   window.onload = async function(){
     try{
-      // 1) OFFERS
+      /****************************************
+       * 0) General Results for Home Page
+       ****************************************/
+      {
+        const genResCsv = await fetchCsv('data/general_results.csv');
+        const genResRows = parseCsv(genResCsv);
+        let genResults = {};
+        for(let row of genResRows){
+          const metric = row[0];
+          const valNum = parseFloat(row[1]) || 0;
+          genResults[metric] = valNum;
+        }
+
+        // Fill AI figure cards
+        document.getElementById('aiOffersValue').textContent = genResults["Total IA offers"] || "0";
+        const lastQtrOffers = genResults["Number of AI offers in last quarter"] || 0;
+        document.getElementById('aiOffersLastQuarter').textContent = `+${lastQtrOffers} offers last quarter`;
+
+        document.getElementById('aiFirmsValue').textContent = genResults["Number of firms with AI offers"] || "0";
+        const newAiFirms = genResults["Number of new AI adopters in last quarter"] || 0;
+        document.getElementById('aiFirmsLastQuarter').textContent = `+${newAiFirms} new firms last quarter`;
+
+        // Fill GenAI figure cards
+        document.getElementById('genAiOffersValue').textContent = genResults["Total IA générative offers"] || "0";
+        const lastQtrGenOffers = genResults["Number of GenAI offers in last quarter"] || 0;
+        document.getElementById('genAiOffersLastQuarter').textContent = `+${lastQtrGenOffers} offers last quarter`;
+
+        document.getElementById('genAiFirmsValue').textContent = genResults["Number of firms with GenAI offers"] || "0";
+        // If there's no row for new GenAI adopters, just show "no data"
+        document.getElementById('genAiFirmsLastQuarter').textContent = "(no data)";
+      }
+
+      /****************************************
+       * 1) OFFERS
+       ****************************************/
       {
         const totalCsv = await fetchCsv('data/offers_total.csv');
         const totalRows = parseCsv(totalCsv);
@@ -614,7 +622,9 @@
         }
       }
 
-      // 2) SECTORS
+      /****************************************
+       * 2) SECTORS
+       ****************************************/
       {
         // total_gen
         const tgenText = await fetchCsv('data/two_sectors_total_gen.csv');
@@ -650,12 +660,13 @@
         }
       }
 
-      // 3) MAP
+      /****************************************
+       * 3) MAP
+       ****************************************/
       {
         const mapCsv = await fetchCsv('data/map_offers.csv');
         const mapRows = parseCsv(mapCsv);
         for(let row of mapRows){
-          // row = [ zoneName, geometry, ia, ia_rel, ia générative, ia générative_rel, total_offers ]
           let obj = {
             'Nom Officiel Zone emploi 2020': row[0],
             geometry: row[1],
@@ -669,7 +680,7 @@
         }
       }
 
-      // Build the 2 charts + map
+      // Build charts + map
       createOffersChart();
       createSectorsChart();
       createMapOffers();
