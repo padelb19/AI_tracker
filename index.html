@@ -20,6 +20,9 @@
     crossorigin=""
   ></script>
 
+  <!-- PapaParse (for robust CSV parsing) -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
   <style>
     /* Global styles */
     body {
@@ -335,8 +338,17 @@
    * Basic Page Navigation
    ****************************************************/
   function showPage(pageId) {
+    // Hide all pages
     document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
+    // Show the requested page
     document.getElementById(pageId).classList.add('active');
+
+    // If we just navigated to dashboards, fix Leaflet map size if it's created
+    if (pageId === 'dashboards' && typeof mapOffers !== 'undefined') {
+      setTimeout(() => {
+        mapOffers.invalidateSize();
+      }, 100);
+    }
   }
   function scrollToSection(sectionId) {
     const section = document.getElementById(sectionId);
@@ -346,7 +358,7 @@
   }
 
   /****************************************************
-   * CSV fetch & parse
+   * CSV fetch & parse (using Papa Parse)
    ****************************************************/
   async function fetchCsv(url) {
     const resp = await fetch(url);
@@ -354,25 +366,14 @@
     return await resp.text();
   }
 
-  // Updated parseCsv to correctly handle commas inside quoted fields and log the parsed rows for debugging.
+  // Replaces the old regex-based parser:
+  // Now uses Papa Parse to reliably handle nested quotes, etc.
   function parseCsv(csvText) {
-    const lines = csvText.trim().split('\n');
-    const rows = [];
-    const splitPattern = /,(?=(?:[^"]*"[^"]*")*[^"]*$)/;
-    for (let i = 1; i < lines.length; i++){
-      let cells = lines[i].split(splitPattern);
-      cells = cells.map(cell => {
-        cell = cell.trim();
-        if (cell.startsWith('"') && cell.endsWith('"')){
-          cell = cell.substring(1, cell.length - 1);
-          cell = cell.replace(/""/g, '"');
-        }
-        return cell;
-      });
-      rows.push(cells);
-    }
-    console.log("Parsed CSV rows:", rows); // Debug: show CSV rows
-    return rows;
+    const parsed = Papa.parse(csvText, { header: false, skipEmptyLines: true });
+    console.log("Parsed CSV rows (with Papa Parse):", parsed.data);
+    // The first row is typically the header row,
+    // so we'll return everything after row 0:
+    return parsed.data.slice(1);
   }
 
   /****************************************************
@@ -408,17 +409,14 @@
           {
             label: 'IA Générative',
             data: totalDataOffersGen,
-            backgroundColor: 'rgba(255, 99, 132, 0.7)'
           },
           {
             label: 'IA Générale',
             data: totalDataOffersGeneral,
-            backgroundColor: 'rgba(75, 192, 192, 0.7)'
           },
           {
             label: 'Computer Vision',
             data: totalDataOffersCV,
-            backgroundColor: 'rgba(54, 162, 235, 0.7)'
           }
         ]
       },
@@ -477,13 +475,11 @@
         datasets:[
           {
             label:'Industrie',
-            data:[],
-            backgroundColor:'rgba(153, 102, 255, 0.7)'
+            data:[]
           },
           {
             label:'Services',
-            data:[],
-            backgroundColor:'rgba(255, 205, 86, 0.7)'
+            data:[]
           }
         ]
       },
@@ -571,10 +567,8 @@
     // Loop through each row from CSV map data.
     mapData.forEach(row=>{
       try{
-        console.log("Raw geometry string for row:", row.geometry); // Debug: log the CSV geometry string
+        // Attempt to parse geometry
         const geo = JSON.parse(row.geometry);
-        console.log("Parsed geoJSON for row:", geo); // Debug: log the parsed GeoJSON
-
         const layer = L.geoJSON(geo, {
           style: {
             fillColor:'#ccc',
@@ -586,7 +580,7 @@
 
         mapGeoLayers.push({ layer, rowData: row });
 
-        // Bind an optional popup for debugging
+        // Optional popup
         layer.bindPopup(`
           <b>${row['Nom Officiel Zone emploi 2020']}</b><br/>
           AI: ${row.ia}<br/>
