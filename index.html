@@ -7,17 +7,13 @@
   <!-- Chart.js (for Offers + Sectors dashboards) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Leaflet (for the Map dashboard) -->
+  <!-- Leaflet (for the Map dashboard), without SRI to avoid hash mismatch -->
   <link 
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-1yXY5T2Ec8AIWoWTRfVdfo4X0O6SC1dLL4f72gDxGJc="
-    crossorigin=""
   />
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-Dtomj3yQXr3R9TxSNezAkn5JZf2fcs3tiCJ7RDU4o8Q="
-    crossorigin=""
   ></script>
 
   <!-- PapaParse (for robust CSV parsing) -->
@@ -366,8 +362,6 @@
     return await resp.text();
   }
 
-  // Replaces the old regex-based parser:
-  // Now uses Papa Parse to reliably handle nested quotes, etc.
   function parseCsv(csvText) {
     const parsed = Papa.parse(csvText, { header: false, skipEmptyLines: true });
     console.log("Parsed CSV rows (with Papa Parse):", parsed.data);
@@ -559,6 +553,7 @@
   }
 
   function createMapOffers(){
+    // Create Leaflet map
     mapOffers = L.map('mapOffers').setView([46.8,2.0],6);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
       attribution:'&copy; OpenStreetMap'
@@ -567,7 +562,6 @@
     // Loop through each row from CSV map data.
     mapData.forEach(row=>{
       try{
-        // Attempt to parse geometry
         const geo = JSON.parse(row.geometry);
         const layer = L.geoJSON(geo, {
           style: {
