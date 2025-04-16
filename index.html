@@ -287,25 +287,24 @@
   </div>
 </div>
 
-<!-- Projects Page -->
+<!-- Projects Page (updated) -->
 <div id="projects" class="page">
   <h2>Projects</h2>
+  
   <section class="authors">
     <h3>Authors</h3>
     <p>This AI-tracker is developed by three economists:</p>
     <ul>
-      <li>Paul Delbouve</li>
-      <li>Philippe Aghion</li>
-      <li>Antonin Bergeaud</li>
+      <li>Philippe Aghion (Collège de France, INSEAD, LSE, and CEPR)</li>
+      <li>Antonin Bergeaud (HEC Paris, CEP-LSE, and CEPR)</li>
+      <li>Paul Delbouve (Collège de France, PSE, Ministère de l'Economie (DGE))</li>
     </ul>
   </section>
+  
   <section class="papers">
     <h3>Academic Papers</h3>
     <p>
-      Here you will find academic papers linked with this website and ongoing research projects related to AI adoption.
-      <br /><br />
-      <strong>Paper 1:</strong> <em>Title and Link (mock)</em><br />
-      <strong>Paper 2:</strong> <em>Title and Link (mock)</em>
+      <strong>Diffusion de l'Intelligence Artificielle en France</strong> (in progress)
     </p>
   </section>
 </div>
@@ -346,7 +345,8 @@
   function parseCsv(csvText) {
     const parsed = Papa.parse(csvText, { header: false, skipEmptyLines: true });
     console.log("Parsed CSV rows (with Papa Parse):", parsed.data);
-    // The first row is typically the header row, so slice(1) returns data only
+    // The first row is typically the header row,
+    // so we'll return everything after row 0:
     return parsed.data.slice(1);
   }
 
