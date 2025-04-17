@@ -4,18 +4,18 @@
   <meta charset="UTF-8" />
   <title>AI‑tracker</title>
 
-  <!-- Chart.js (all charts) -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Leaflet (map) -->
+  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- PapaParse (CSV parsing) -->
+  <!-- PapaParse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
-    /* ------------ GLOBAL / EXISTING STYLES ------------- */
+    /* ---------- GLOBAL STYLES ---------- */
     body{margin:0;padding:0;font-family:Arial, sans-serif;background:#fff}
     header{width:100%;background:#f2f2f2;padding:10px}
     .header-top{display:flex;align-items:center}
@@ -29,7 +29,7 @@
     nav button:hover{background:#eee}
     .page{display:none;padding:20px}.active{display:block}
 
-    /* accueil & cards */
+    /* accueil cards */
     #accueil h2{text-align:center;margin-top:30px}
     .explanation{max-width:800px;margin:30px auto;text-align:center;line-height:1.4em}
     .additional-figures{max-width:1000px;margin:40px auto}
@@ -43,18 +43,18 @@
     .sub-nav button{margin:5px;background:#fff;border:1px solid #ccc;cursor:pointer;border-radius:4px}
     .chart-section{margin-bottom:40px}
     .chart-container{max-width:800px;width:100%;margin:0 auto}
-
-    /* smaller pie‑chart container */
+    /* small pie */
     #sizeSection .chart-container{max-width:400px;height:400px;margin:0 auto}
+    /* map */
+    #mapOffersSection .map-container{width:600px;height:600px;margin:0 auto}
 
-    /* toggle‑button “cursor” style */
-    .toggle-btn{position:relative;display:inline-block;width:90px;height:30px;border:none;border-radius:15px;background:#ccc;color:#fff;font-size:12px;font-weight:bold;cursor:pointer;transition:background .3s, color .3s}
+    /* toggle buttons */
+    .toggle-btn{position:relative;display:inline-block;width:90px;height:30px;border:none;border-radius:15px;background:#ccc;color:#fff;font-size:12px;font-weight:bold;cursor:pointer;transition:background .3s}
     .toggle-btn .slider{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .3s}
-    .toggle-btn.active{background:#4caf50;color:#fff}
+    .toggle-btn.active{background:#4caf50}
     .toggle-btn.active .slider{left:63px}
     .toggle-label{margin-left:8px;font-size:14px;font-weight:bold}
     .chart-controls{display:flex;justify-content:center;align-items:center;gap:15px;margin:10px 0}
-    #mapOffersSection .map-container{width:600px;height:600px;margin:0 auto}
 
     /* projects */
     #projects h2{text-align:center;margin-bottom:40px}
@@ -133,7 +133,7 @@
 
   <!-- 2.5) firm‑size pie -->
   <div id="sizeSection" class="chart-section">
-    <h3>Distribution of AI Adopters by Firm Size</h3>
+    <h3>Distribution of AI Adopters by Firm Size</h3>
     <div class="chart-controls">
       <button id="btnSizeCat" class="toggle-btn" onclick="toggleSizeAiGen()"><span class="slider"></span></button>
       <span class="toggle-label" id="lblSizeCat">AI</span>
@@ -155,90 +155,163 @@
   </div>
 </div>
 
-<!-- -------------------- PROJECTS (unchanged) -------------------- -->
+<!-- -------------------- PROJECTS -------------------- -->
 <div id="projects" class="page">
   <h2>Projects</h2>
-  <!-- existing content -->
+  <section class="authors">
+    <h3>Authors</h3>
+    <p>This AI‑tracker is developed by:</p>
+    <ul>
+      <li>Paul Delbouve (Collège de France, PSE, DGE)</li>
+      <li>Philippe Aghion (Collège de France, INSEAD, LSE, CEPR)</li>
+      <li>Antonin Bergeaud (HEC Paris, CEP‑LSE, CEPR)</li>
+    </ul>
+  </section>
+  <section class="papers">
+    <h3>Academic Papers</h3>
+    <p><strong>Diffusion de l'Intelligence Artificielle en France</strong> (in progress)</p>
+  </section>
 </div>
 
 <!-- -------------------- SCRIPTS -------------------- -->
 <script>
-/* --- helpers --- */
+/* ---------- basic helpers ---------- */
 function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');if(id==='dashboards'&&mapOffers){setTimeout(()=>mapOffers.invalidateSize(),100)}}
 function scrollToSection(id){const el=document.getElementById(id);if(el){showPage('dashboards');el.scrollIntoView({behavior:'smooth'})}}
 async function fetchCsv(u){const r=await fetch(u);if(!r.ok)throw`fetch ${u}`;return r.text()}
 function parseCsv(t){return Papa.parse(t,{header:false,skipEmptyLines:true}).data.slice(1)}
+function setToggle(btn,label,active,txt){btn.classList.toggle('active',active);label.textContent=txt;}
 
-/* --- toggle‑button helpers --- */
-function setToggle(btn, label, active, txt){
-  btn.classList.toggle('active',active);
-  label.textContent = txt;
-}
+/* ---------- date helpers ---------- */
+function monthLabel(i){const y=2019+Math.floor(i/12),m=(i%12)+1;return`${y}-${String(m).padStart(2,'0')}`;}
+function quarterLabel(i){const y=2019+Math.floor(i/4),q=(i%4)+1;return`Q${q} ${y}`;}
 
-/* ---------- OFFERS ---------- */
+/* ---------- ARRAYS ---------- */
+let dateLabels=[],totalDataOffersGen=[],totalDataOffersGeneral=[],totalDataOffersCV=[],shareDataOffersGen=[],shareDataOffersGeneral=[],shareDataOffersCV=[];
+let sectorsLabels=[],industryTotalGen=[],serviceTotalGen=[],industryTotalNonGen=[],serviceTotalNonGen=[],industryShareGen=[],serviceShareGen=[],industryShareNonGen=[],serviceShareNonGen=[];
+let sizeLabels=[],shareSizeAi=[],shareSizeGen=[];
+let mapGeoLayers=[],mapData=[];
+
+/* ---------- OFFERS CHART ---------- */
 let offersChart,offersMode='total';
-function createOffersChart(){const ctx=document.getElementById('offersChart').getContext('2d');offersChart=new Chart(ctx,{type:'bar',data:{labels:dateLabels,datasets:[{label:'IA Générative',data:totalDataOffersGen},{label:'IA Générale',data:totalDataOffersGeneral},{label:'Computer Vision',data:totalDataOffersCV}]},options:{responsive:true,scales:{x:{stacked:true},y:{stacked:true}}}});}
+function createOffersChart(){
+  offersChart=new Chart(document.getElementById('offersChart'),{
+    type:'bar',
+    data:{labels:dateLabels,datasets:[
+      {label:'IA Générative',data:totalDataOffersGen},
+      {label:'IA Générale',data:totalDataOffersGeneral},
+      {label:'Computer Vision',data:totalDataOffersCV}]},
+    options:{responsive:true,scales:{x:{stacked:true},y:{stacked:true}}}});
+}
 function toggleTotalShare(){
   offersMode=offersMode==='total'?'share':'total';
   offersChart.data.datasets[0].data=offersMode==='total'?totalDataOffersGen:shareDataOffersGen;
   offersChart.data.datasets[1].data=offersMode==='total'?totalDataOffersGeneral:shareDataOffersGeneral;
   offersChart.data.datasets[2].data=offersMode==='total'?totalDataOffersCV:shareDataOffersCV;
   offersChart.update();
-  setToggle(document.getElementById('btnOfferMode'),document.getElementById('lblOfferMode'),offersMode==='share',offersMode.charAt(0).toUpperCase()+offersMode.slice(1));
+  setToggle(btnOfferMode,lblOfferMode,offersMode==='share',offersMode.charAt(0).toUpperCase()+offersMode.slice(1));
 }
 
-/* ---------- SECTORS ---------- */
+/* ---------- SECTORS CHART ---------- */
 let sectorsChart,sectorsMode='total',sectorsAIType='genAI';
-function createSectorsChart(){const ctx=document.getElementById('sectorsChart').getContext('2d');sectorsChart=new Chart(ctx,{type:'bar',data:{labels:sectorsLabels,datasets:[{label:'Industrie',data:[]},{label:'Services',data:[]}]},options:{responsive:true}});updateSectorsChart()}
-function updateSectorsChart(){let ind,serv;if(sectorsMode==='total'&&sectorsAIType==='genAI'){ind=industryTotalGen;serv=serviceTotalGen}else if(sectorsMode==='total'){ind=industryTotalNonGen;serv=serviceTotalNonGen}else if(sectorsAIType==='genAI'){ind=industryShareGen;serv=serviceShareGen}else{ind=industryShareNonGen;serv=serviceShareNonGen}sectorsChart.data.datasets[0].data=ind;sectorsChart.data.datasets[1].data=serv;sectorsChart.update()}
-function toggleSectorsTotalShare(){sectorsMode=sectorsMode==='total'?'share':'total';updateSectorsChart();setToggle(document.getElementById('btnSectorMode'),document.getElementById('lblSectorMode'),sectorsMode==='share',sectorsMode.charAt(0).toUpperCase()+sectorsMode.slice(1))}
-function toggleSectorsGenNonGen(){sectorsAIType=sectorsAIType==='genAI'?'nonGenAI':'genAI';updateSectorsChart();setToggle(document.getElementById('btnSectorCat'),document.getElementById('lblSectorCat'),sectorsAIType!=='genAI',sectorsAIType==='genAI'?'Gen AI':'Non‑Gen')}
+function createSectorsChart(){
+  sectorsChart=new Chart(document.getElementById('sectorsChart'),{
+    type:'bar',
+    data:{labels:sectorsLabels,datasets:[
+      {label:'Industrie',data:[]},
+      {label:'Services',data:[]}]},
+    options:{responsive:true}});
+  updateSectorsChart();
+}
+function updateSectorsChart(){
+  let ind,serv;
+  if(sectorsMode==='total'&&sectorsAIType==='genAI'){ind=industryTotalGen;serv=serviceTotalGen}
+  else if(sectorsMode==='total'){ind=industryTotalNonGen;serv=serviceTotalNonGen}
+  else if(sectorsAIType==='genAI'){ind=industryShareGen;serv=serviceShareGen}
+  else{ind=industryShareNonGen;serv=serviceShareNonGen}
+  sectorsChart.data.datasets[0].data=ind;
+  sectorsChart.data.datasets[1].data=serv;
+  sectorsChart.update();
+}
+function toggleSectorsTotalShare(){
+  sectorsMode=sectorsMode==='total'?'share':'total';updateSectorsChart();
+  setToggle(btnSectorMode,lblSectorMode,sectorsMode==='share',sectorsMode.charAt(0).toUpperCase()+sectorsMode.slice(1));
+}
+function toggleSectorsGenNonGen(){
+  sectorsAIType=sectorsAIType==='genAI'?'nonGenAI':'genAI';updateSectorsChart();
+  setToggle(btnSectorCat,lblSectorCat,sectorsAIType!=='genAI',sectorsAIType==='genAI'?'Gen AI':'Non‑Gen');
+}
 
 /* ---------- FIRM‑SIZE PIE ---------- */
 let sizeChart,sizeAiType='ai';
-function createSizeChart(){const ctx=document.getElementById('sizeChart').getContext('2d');sizeChart=new Chart(ctx,{type:'pie',data:{labels:sizeLabels,datasets:[{data:shareSizeAi}]},options:{responsive:true,plugins:{legend:{position:'bottom'}}}});}
-function toggleSizeAiGen(){sizeAiType=sizeAiType==='ai'?'gen':'ai';sizeChart.data.datasets[0].data=sizeAiType==='ai'?shareSizeAi:shareSizeGen;sizeChart.update();setToggle(document.getElementById('btnSizeCat'),document.getElementById('lblSizeCat'),sizeAiType==='gen','Gen AI')}
+function createSizeChart(){
+  sizeChart=new Chart(document.getElementById('sizeChart'),{
+    type:'pie',
+    data:{labels:sizeLabels,datasets:[{data:shareSizeAi}]},
+    options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+}
+function toggleSizeAiGen(){
+  sizeAiType=sizeAiType==='ai'?'gen':'ai';
+  sizeChart.data.datasets[0].data=sizeAiType==='ai'?shareSizeAi:shareSizeGen;
+  sizeChart.update();
+  setToggle(btnSizeCat,lblSizeCat,sizeAiType==='gen','Gen AI');
+}
 
 /* ---------- MAP ---------- */
 let mapOffers,mapOffersMode='total',mapOffersAI='ai';
-function createMapOffers(){mapOffers=L.map('mapOffers').setView([46.8,2],6);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap'}).addTo(mapOffers);mapData.forEach(r=>{try{const g=JSON.parse(r.geometry);const l=L.geoJSON(g,{style:{fillColor:'#ccc',color:'#888',weight:1,fillOpacity:.6}}).addTo(mapOffers);l.bindPopup(`<b>${r['Nom Officiel Zone emploi 2020']}</b><br/>AI: ${r.ia}<br/>Share AI: ${r.ia_rel}<br/>GenAI: ${r['ia générative']}<br/>Share GenAI: ${r['ia générative_rel']}`);mapGeoLayers.push({layer:l,rowData:r})}catch{}});recolorMap()}
 function pickColor(v){if(isNaN(v))return'#ccc';if(v<10)return'#fee5d9';if(v<50)return'#fcae91';if(v<200)return'#fb6a4a';if(v<500)return'#de2d26';return'#a50f15'}
-function toggleMapTotalShare(){mapOffersMode=mapOffersMode==='total'?'share':'total';recolorMap();setToggle(document.getElementById('btnMapMode'),document.getElementById('lblMapMode'),mapOffersMode==='share',mapOffersMode.charAt(0).toUpperCase()+mapOffersMode.slice(1))}
-function toggleMapAiGen(){mapOffersAI=mapOffersAI==='ai'?'gen':'ai';recolorMap();setToggle(document.getElementById('btnMapCat'),document.getElementById('lblMapCat'),mapOffersAI==='gen','Gen AI')}
-function recolorMap(){let c;if(mapOffersAI==='ai'&&mapOffersMode==='total'){c='ia'}else if(mapOffersAI==='ai'){c='ia_rel'}else if(mapOffersMode==='total'){c='ia générative'}else{c='ia générative_rel'}mapGeoLayers.forEach(o=>{const v=parseFloat(o.rowData[c]);o.layer.setStyle({fillColor:pickColor(v)})})}
-
-/* ---------- DATA ARRAYS (declared here for brevity) ---------- */
-let dateLabels=[],totalDataOffersGen=[],totalDataOffersGeneral=[],totalDataOffersCV=[],shareDataOffersGen=[],shareDataOffersGeneral=[],shareDataOffersCV=[];
-let sectorsLabels=[],industryTotalGen=[],serviceTotalGen=[],industryTotalNonGen=[],serviceTotalNonGen=[],industryShareGen=[],serviceShareGen=[],industryShareNonGen=[],serviceShareNonGen=[];
-let sizeLabels=[],shareSizeAi=[],shareSizeGen=[];
-let mapGeoLayers=[],mapData=[];
+function createMapOffers(){
+  mapOffers=L.map('mapOffers').setView([46.8,2],6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap'}).addTo(mapOffers);
+  mapData.forEach(r=>{try{
+    const l=L.geoJSON(JSON.parse(r.geometry),{style:{fillColor:'#ccc',color:'#888',weight:1,fillOpacity:.6}}).addTo(mapOffers);
+    l.bindPopup(`<b>${r['Nom Officiel Zone emploi 2020']}</b><br/>AI: ${r.ia}<br/>Share AI: ${r.ia_rel}<br/>GenAI: ${r['ia générative']}<br/>Share GenAI: ${r['ia générative_rel']}`);
+    mapGeoLayers.push({layer:l,rowData:r});
+  }catch{}});recolorMap();
+}
+function recolorMap(){
+  let col;
+  if(mapOffersAI==='ai' && mapOffersMode==='total')      col='ia';
+  else if(mapOffersAI==='ai')                           col='ia_rel';
+  else if(mapOffersMode==='total')                      col='ia générative';
+  else                                                  col='ia générative_rel';
+  mapGeoLayers.forEach(o=>o.layer.setStyle({fillColor:pickColor(+o.rowData[col])}));
+}
+function toggleMapTotalShare(){
+  mapOffersMode=mapOffersMode==='total'?'share':'total';recolorMap();
+  setToggle(btnMapMode,lblMapMode,mapOffersMode==='share',mapOffersMode.charAt(0).toUpperCase()+mapOffersMode.slice(1));
+}
+function toggleMapAiGen(){
+  mapOffersAI=mapOffersAI==='ai'?'gen':'ai';recolorMap();
+  setToggle(btnMapCat,lblMapCat,mapOffersAI==='gen','Gen AI');
+}
 
 /* ---------- LOAD CSVs & BUILD ---------- */
 window.onload=async()=>{try{
-  /* home page */
-  const g=parseCsv(await fetchCsv('data/general_results.csv'));const d={};g.forEach(r=>d[r[0]]=+r[1]||0);
-  document.getElementById('aiOffersValue').textContent=d["Total IA offers"]||0;
-  document.getElementById('aiOffersLastQuarter').textContent=`+${d["Number of AI offers in last quarter"]||0} offers last quarter`;
-  document.getElementById('aiFirmsValue').textContent=d["Number of firms with AI offers"]||0;
-  document.getElementById('aiFirmsLastQuarter').textContent=`+${d["Number of new AI adopters in last quarter"]||0} new firms last quarter`;
-  document.getElementById('genAiOffersValue').textContent=d["Total IA générative offers"]||0;
-  document.getElementById('genAiOffersLastQuarter').textContent=`+${d["Number of GenAI offers in last quarter"]||0} offers last quarter`;
-  document.getElementById('genAiFirmsValue').textContent=d["Number of firms with GenAI offers"]||0;
+  /* home page figures */
+  parseCsv(await fetchCsv('data/general_results.csv')).forEach(r=>window.gen||(window.gen={})&&(gen[r[0]]=+r[1]||0));
+  document.getElementById('aiOffersValue').textContent=gen["Total IA offers"]||0;
+  document.getElementById('aiOffersLastQuarter').textContent=`+${gen["Number of AI offers in last quarter"]||0} offers last quarter`;
+  document.getElementById('aiFirmsValue').textContent=gen["Number of firms with AI offers"]||0;
+  document.getElementById('aiFirmsLastQuarter').textContent=`+${gen["Number of new AI adopters in last quarter"]||0} new firms last quarter`;
+  document.getElementById('genAiOffersValue').textContent=gen["Total IA générative offers"]||0;
+  document.getElementById('genAiOffersLastQuarter').textContent=`+${gen["Number of GenAI offers in last quarter"]||0} offers last quarter`;
+  document.getElementById('genAiFirmsValue').textContent=gen["Number of firms with GenAI offers"]||0;
 
-  /* offers csvs */
-  parseCsv(await fetchCsv('data/offers_total.csv')).forEach(r=>{const i=parseInt(r[0]);dateLabels.push(monthLabel(i));totalDataOffersGen.push(+r[1]);totalDataOffersGeneral.push(+r[2]);totalDataOffersCV.push(+r[3])});
+  /* offers data */
+  parseCsv(await fetchCsv('data/offers_total.csv')).forEach(r=>{dateLabels.push(monthLabel(+r[0]));totalDataOffersGen.push(+r[1]);totalDataOffersGeneral.push(+r[2]);totalDataOffersCV.push(+r[3])});
   parseCsv(await fetchCsv('data/offers_share.csv')).forEach(r=>{shareDataOffersGen.push(+r[1]);shareDataOffersGeneral.push(+r[2]);shareDataOffersCV.push(+r[3])});
 
-  /* sectors */
-  parseCsv(await fetchCsv('data/two_sectors_total_gen.csv')).forEach(r=>{const idx=parseInt(r[0]);if(sectorsLabels.length<=idx)sectorsLabels.push(quarterLabel(idx));industryTotalGen.push(+r[1]);serviceTotalGen.push(+r[2])});
+  /* sector data */
+  parseCsv(await fetchCsv('data/two_sectors_total_gen.csv')).forEach(r=>{const i=+r[0];if(sectorsLabels.length<=i)sectorsLabels.push(quarterLabel(i));industryTotalGen.push(+r[1]);serviceTotalGen.push(+r[2])});
   parseCsv(await fetchCsv('data/two_sectors_total_nongen.csv')).forEach(r=>{industryTotalNonGen.push(+r[1]);serviceTotalNonGen.push(+r[2])});
   parseCsv(await fetchCsv('data/two_sectors_share_gen.csv')).forEach(r=>{industryShareGen.push(+r[1]);serviceShareGen.push(+r[2])});
   parseCsv(await fetchCsv('data/two_sectors_share_nongen.csv')).forEach(r=>{industryShareNonGen.push(+r[1]);serviceShareNonGen.push(+r[2])});
 
-  /* firm‑size csv */
+  /* firm‑size */
   parseCsv(await fetchCsv('data/distrib_size.csv')).forEach(r=>{sizeLabels.push(r[0]);shareSizeAi.push(+r[1]);shareSizeGen.push(+r[2])});
 
-  /* map csv */
+  /* map */
   parseCsv(await fetchCsv('data/map_offers.csv')).forEach(r=>mapData.push({'Nom Officiel Zone emploi 2020':r[0],geometry:r[1],ia:r[2],ia_rel:r[3],'ia générative':r[4],'ia générative_rel':r[5],total_offers:r[6]}));
 
   /* build visuals */
