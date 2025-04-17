@@ -2,189 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AI-tracker</title>
+  <title>AI‑tracker</title>
 
-  <!-- Chart.js (for Offers + Sectors dashboards) -->
+  <!-- Chart.js (for all charts) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Leaflet (for the Map dashboard), no SRI to avoid hash mismatch -->
-  <link 
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-  ></script>
+  <!-- Leaflet (for the map) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- PapaParse (for robust CSV parsing) -->
+  <!-- PapaParse (CSV parsing) -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
-    /* Global styles */
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      background-color: white;
-    }
-    header {
-      width: 100%;
-      background-color: #f2f2f2;
-      padding: 10px;
-    }
-    .header-top {
-      display: flex;
-      align-items: center;
-    }
-    .left-block, .center-block, .right-block {
-      flex: 1;
-      min-height: 50px;
-    }
-    .left-block {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-    }
-    .logo {
-      height: 80px;
-      margin-left: 10px;
-    }
-    .center-block {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-    }
-    .center-block h1 {
-      margin: 0;
-      font-size: 1.8em;
-    }
-    .right-block { /* placeholder if needed */ }
-
-    nav {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      margin-top: 10px;
-    }
-    nav button {
-      padding: 10px 20px;
-      cursor: pointer;
-      background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    nav button:hover {
-      background-color: #eee;
-    }
-
-    .page {
-      display: none; /* hidden by default; only the active one is shown */
-      padding: 20px;
-    }
-    .active {
-      display: block;
-    }
-
-    /* Accueil Page */
-    #accueil h2 {
-      text-align: center;
-      margin-top: 30px;
-    }
-    .explanation {
-      max-width: 800px;
-      margin: 30px auto;
-      text-align: center;
-      font-size: 1em;
-      line-height: 1.4em;
-    }
-    .additional-figures {
-      max-width: 1000px;
-      margin: 40px auto;
-    }
-    .figures-row {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-      margin-bottom: 40px;
-    }
-    .key-figure-card {
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      padding: 20px;
-      width: 200px;
-      text-align: center;
-      background-color: #fff;
-    }
-
-    /* Dashboards Page */
-    #dashboards {
-      margin: 0 auto;
-      max-width: 1000px;
-    }
-    #dashboards h2 {
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    .sub-nav {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .sub-nav button {
-      margin: 5px;
-      background-color: #fff;
-      border: 1px solid #ccc;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    .chart-section {
-      margin-bottom: 40px;
-    }
-    .chart-controls {
-      margin: 10px 0;
-      text-align: center;
-    }
-    .chart-container {
-      width: 100%;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    /* Third Dashboard (Map) */
-    #mapOffersSection .map-container {
-      width: 600px;
-      height: 600px;
-      margin: 0 auto; /* center */
-    }
-
-    /* Projects Page */
-    #projects h2 {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-    #projects section {
-      max-width: 800px;
-      margin: 0 auto 30px auto;
-    }
-    #projects section h3 {
-      border-bottom: 1px solid #ccc;
-      padding-bottom: 5px;
-      margin-bottom: 10px;
-    }
+    /* ---------- existing CSS (unchanged) ---------- */
+    body{margin:0;padding:0;font-family:Arial, sans-serif;background:#fff}
+    header{width:100%;background:#f2f2f2;padding:10px}
+    .header-top{display:flex;align-items:center}
+    .left-block,.center-block,.right-block{flex:1;min-height:50px}
+    .left-block{display:flex;align-items:center;justify-content:flex-start}
+    .logo{height:80px;margin-left:10px}
+    .center-block{display:flex;align-items:center;justify-content:center;text-align:center}
+    .center-block h1{margin:0;font-size:1.8em}
+    nav{display:flex;justify-content:center;gap:20px;margin-top:10px}
+    nav button{padding:10px 20px;cursor:pointer;background:#fff;border:1px solid #ccc;border-radius:4px}
+    nav button:hover{background:#eee}
+    .page{display:none;padding:20px}.active{display:block}
+    #accueil h2{text-align:center;margin-top:30px}
+    .explanation{max-width:800px;margin:30px auto;text-align:center;font-size:1em;line-height:1.4em}
+    .additional-figures{max-width:1000px;margin:40px auto}
+    .figures-row{display:flex;flex-wrap:wrap;justify-content:center;gap:20px;margin-bottom:40px}
+    .key-figure-card{border:1px solid #ccc;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,.1);padding:20px;width:200px;text-align:center;background:#fff}
+    #dashboards{margin:0 auto;max-width:1000px}
+    #dashboards h2{text-align:center;margin-bottom:10px}
+    .sub-nav{text-align:center;margin-bottom:20px}
+    .sub-nav button{margin:5px;background:#fff;border:1px solid #ccc;cursor:pointer;border-radius:4px}
+    .chart-section{margin-bottom:40px}
+    .chart-controls{text-align:center;margin:10px 0}
+    .chart-container{max-width:800px;width:100%;margin:0 auto}
+    #mapOffersSection .map-container{width:600px;height:600px;margin:0 auto}
+    #projects h2{text-align:center;margin-bottom:40px}
+    #projects section{max-width:800px;margin:0 auto 30px}
+    #projects section h3{border-bottom:1px solid #ccc;padding-bottom:5px;margin-bottom:10px}
   </style>
 </head>
 <body>
 
 <header>
   <div class="header-top">
-    <div class="left-block">
-      <img src="logo.png" alt="AI-tracker logo" class="logo" />
-    </div>
-    <div class="center-block">
-      <h1>AI-tracker</h1>
-    </div>
+    <div class="left-block"><img src="logo.png" alt="AI‑tracker logo" class="logo"/></div>
+    <div class="center-block"><h1>AI‑tracker</h1></div>
     <div class="right-block"></div>
   </div>
   <nav>
@@ -194,502 +61,169 @@
   </nav>
 </header>
 
-<!-- Accueil Page -->
+<!-- -------------------- ACCUEIL (unchanged) -------------------- -->
 <div id="accueil" class="page active">
-  <h2>Welcome to the AI-tracker!</h2>
-  <p style="text-align:center;">
-    Here you can find insights into the evolution of AI adoption by French firms, based on their recruitment data.
-  </p>
+  <!-- … existing home‑page content … -->
+  <h2>Welcome to the AI‑tracker!</h2>
+  <p style="text-align:center;">Here you can find insights into the evolution of AI adoption by French firms, based on their recruitment data.</p>
   <div class="explanation">
-    This tracker is built using machine learning models on the JOCAS database, edited by the 
-    French Ministry of Labor's DARES. By automatically detecting AI-related job offers, 
-    the AI-tracker monitors the growing adoption of this technology within the French economy.
+    This tracker is built using machine‑learning models on the JOCAS database, edited by the French Ministry of Labor’s DARES. By automatically detecting AI‑related job offers, the AI‑tracker monitors the growing adoption of this technology within the French economy.
   </div>
 
-  <!-- Key Figures from general_results.csv -->
   <div class="additional-figures">
-    <!-- Row 1: AI figures -->
+    <!-- AI row -->
     <div class="figures-row">
-      <!-- AI Offers -->
       <div class="key-figure-card">
-        <h4>Total AI Offers</h4>
-        <p id="aiOffersValue">...</p>
-        <p><small id="aiOffersLastQuarter">...</small></p>
+        <h4>Total AI Offers</h4><p id="aiOffersValue">...</p><p><small id="aiOffersLastQuarter">...</small></p>
       </div>
-      <!-- AI Firms -->
       <div class="key-figure-card">
-        <h4>Firms Having Adopted AI</h4>
-        <p id="aiFirmsValue">...</p>
-        <p><small id="aiFirmsLastQuarter">...</small></p>
+        <h4>Firms Having Adopted AI</h4><p id="aiFirmsValue">...</p><p><small id="aiFirmsLastQuarter">...</small></p>
       </div>
     </div>
-
-    <!-- Row 2: GenAI figures -->
+    <!-- GenAI row -->
     <div class="figures-row">
-      <!-- GenAI Offers -->
       <div class="key-figure-card">
-        <h4>Total GenAI Offers</h4>
-        <p id="genAiOffersValue">...</p>
-        <p><small id="genAiOffersLastQuarter">...</small></p>
+        <h4>Total GenAI Offers</h4><p id="genAiOffersValue">...</p><p><small id="genAiOffersLastQuarter">...</small></p>
       </div>
-      <!-- GenAI Firms -->
       <div class="key-figure-card">
-        <h4>Firms Having Adopted GenAI</h4>
-        <p id="genAiFirmsValue">...</p>
-        <p><small id="genAiFirmsLastQuarter">...</small></p>
+        <h4>Firms Having Adopted GenAI</h4><p id="genAiFirmsValue">...</p><p><small id="genAiFirmsLastQuarter">...</small></p>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Dashboards Page -->
+<!-- -------------------- DASHBOARDS -------------------- -->
 <div id="dashboards" class="page">
   <h2>Dashboards</h2>
 
-  <!-- Sub-nav for only the two first + map -->
   <div class="sub-nav">
     <button onclick="scrollToSection('totalOffersSection')">Total Offers</button>
     <button onclick="scrollToSection('sectorsSection')">Sectors</button>
+    <button onclick="scrollToSection('sizeSection')">Firm‑size</button>
     <button onclick="scrollToSection('mapOffersSection')">Map</button>
   </div>
 
-  <!-- 1) Offers Dashboard -->
+  <!-- 1) OFFERS (unchanged) -->
   <div id="totalOffersSection" class="chart-section">
-    <h3>Evolution of AI-Related Job Offers</h3>
-    <div class="chart-controls">
-      <button onclick="toggleTotalShare('offersChart')">Toggle Total / Share</button><br/><br/>
-    </div>
-    <div class="chart-container">
-      <canvas id="offersChart"></canvas>
-    </div>
+    <h3>Evolution of AI‑Related Job Offers</h3>
+    <div class="chart-controls"><button onclick="toggleTotalShare('offersChart')">Toggle Total / Share</button><br/><br/></div>
+    <div class="chart-container"><canvas id="offersChart"></canvas></div>
   </div>
 
-  <!-- 2) Sectors Dashboard -->
+  <!-- 2) SECTORS (unchanged) -->
   <div id="sectorsSection" class="chart-section">
     <h3>Firms Adopting AI by Sector</h3>
     <div class="chart-controls">
       <button onclick="toggleSectorsTotalShare()">Toggle Total / Share</button>
-      <button onclick="toggleSectorsGenNonGen()">Toggle GenAI / Non-GenAI</button>
+      <button onclick="toggleSectorsGenNonGen()">Toggle GenAI / Non‑GenAI</button>
     </div>
-    <div class="chart-container">
-      <canvas id="sectorsChart"></canvas>
-    </div>
+    <div class="chart-container"><canvas id="sectorsChart"></canvas></div>
   </div>
 
-  <!-- 3) Map Dashboard (the new one) -->
+  <!-- 2.5) NEW FIRM‑SIZE PIE CHART -->
+  <div id="sizeSection" class="chart-section">
+    <h3>Distribution of AI Adopters by Firm Size</h3>
+    <div class="chart-controls"><button onclick="toggleSizeAiGen()">Toggle AI / Generative AI</button></div>
+    <div class="chart-container"><canvas id="sizeChart"></canvas></div>
+  </div>
+
+  <!-- 3) MAP (unchanged) -->
   <div id="mapOffersSection" class="chart-section">
     <h3>Map of French Zones d’Emplois</h3>
     <div class="chart-controls">
       <button onclick="toggleMapTotalShare()">Toggle Total / Share</button>
-      <button onclick="toggleMapAiGen()">Toggle AI / Generative AI</button>
+      <button onclick="toggleMapAiGen()">Toggle AI / Generative AI</button>
     </div>
     <div class="map-container" id="mapOffers"></div>
   </div>
 </div>
 
-<!-- Projects Page (updated) -->
+<!-- -------------------- PROJECTS (unchanged) -------------------- -->
 <div id="projects" class="page">
+  <!-- … existing projects page … -->
   <h2>Projects</h2>
-  
   <section class="authors">
     <h3>Authors</h3>
-    <p>This AI-tracker is an ongoing work developed by :</p>
+    <p>This AI‑tracker is an ongoing work developed by:</p>
     <ul>
-      <li><strong>Paul Delbouve </strong>, Collège de France, PSE, DGE (Ministère de l'Economie et des Finances)</li>
-      <li><strong>Philippe Aghion </strong>, Collège de France, INSEAD, LSE, and CEPR</li>
-      <li><strong>Antonin Bergeaud </strong>, HEC Paris, CEP-LSE, and CEPR</li>
-
+      <li><strong>Paul Delbouve</strong> — Collège de France, PSE, DGE (Ministère de l'Économie)</li>
+      <li><strong>Philippe Aghion</strong> — Collège de France, INSEAD, LSE, CEPR</li>
+      <li><strong>Antonin Bergeaud</strong> — HEC Paris, CEP‑LSE, CEPR</li>
     </ul>
   </section>
-  
   <section class="papers">
     <h3>Academic Papers</h3>
-    <p>
-      <strong>Diffusion de l'Intelligence Artificielle en France</strong> (in progress)
-    </p>
+    <p><strong>Diffusion de l'Intelligence Artificielle en France</strong> (in progress)</p>
   </section>
 </div>
 
+<!-- -------------------- SCRIPTS -------------------- -->
 <script>
-  /****************************************************
-   * Basic Page Navigation
-   ****************************************************/
-  function showPage(pageId) {
-    // Hide all pages
-    document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
-    // Show the requested page
-    document.getElementById(pageId).classList.add('active');
+/* ---------- helpers ---------- */
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');if(id==='dashboards'&&typeof mapOffers!=='undefined'){setTimeout(()=>mapOffers.invalidateSize(),100)}}
+function scrollToSection(id){const el=document.getElementById(id);if(el){showPage('dashboards');el.scrollIntoView({behavior:'smooth'})}}
+async function fetchCsv(u){const r=await fetch(u);if(!r.ok)throw`fetch ${u}`;return r.text()}
+function parseCsv(t){return Papa.parse(t,{header:false,skipEmptyLines:true}).data.slice(1)}
 
-    // If we just navigated to dashboards, fix Leaflet map size if it's created
-    if (pageId === 'dashboards' && typeof mapOffers !== 'undefined') {
-      setTimeout(() => {
-        mapOffers.invalidateSize();
-      }, 100);
-    }
-  }
-  function scrollToSection(sectionId) {
-    const section = document.getElementById(sectionId);
-    if (!section) return;
-    showPage('dashboards');
-    section.scrollIntoView({ behavior: 'smooth' });
-  }
+/* ---------- NEW FIRM‑SIZE PIE CHART ---------- */
+let sizeChart,sizeAiType='ai',sizeLabels=[],shareSizeAi=[],shareSizeGen=[];
+function createSizeChart(){const ctx=document.getElementById('sizeChart').getContext('2d');sizeChart=new Chart(ctx,{type:'pie',data:{labels:sizeLabels,datasets:[{data:shareSizeAi}]},options:{responsive:true,plugins:{legend:{position:'bottom'}}}});}
+function toggleSizeAiGen(){sizeAiType=sizeAiType==='ai'?'gen':'ai';sizeChart.data.datasets[0].data=sizeAiType==='ai'?shareSizeAi:shareSizeGen;sizeChart.update()}
 
-  /****************************************************
-   * CSV fetch & parse (using Papa Parse)
-   ****************************************************/
-  async function fetchCsv(url) {
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error(`Failed to fetch ${url}`);
-    return await resp.text();
-  }
+/* ---------- OFFERS CHART (unchanged logic) ---------- */
+let offersChart,offersMode='total',dateLabels=[],totalDataOffersGen=[],totalDataOffersGeneral=[],totalDataOffersCV=[],shareDataOffersGen=[],shareDataOffersGeneral=[],shareDataOffersCV=[];
+function monthLabel(i){const y=2019+Math.floor(i/12),m=(i%12)+1;return`${y}-${String(m).padStart(2,'0')}`}
+function createOffersChart(){const ctx=document.getElementById('offersChart').getContext('2d');offersChart=new Chart(ctx,{type:'bar',data:{labels:dateLabels,datasets:[{label:'IA Générative',data:totalDataOffersGen},{label:'IA Générale',data:totalDataOffersGeneral},{label:'Computer Vision',data:totalDataOffersCV}]},options:{responsive:true,scales:{x:{stacked:true},y:{stacked:true}}}});}
+function toggleTotalShare(){offersMode=offersMode==='total'?'share':'total';offersChart.data.datasets[0].data=offersMode==='total'?totalDataOffersGen:shareDataOffersGen;offersChart.data.datasets[1].data=offersMode==='total'?totalDataOffersGeneral:shareDataOffersGeneral;offersChart.data.datasets[2].data=offersMode==='total'?totalDataOffersCV:shareDataOffersCV;offersChart.update()}
 
-  function parseCsv(csvText) {
-    const parsed = Papa.parse(csvText, { header: false, skipEmptyLines: true });
-    console.log("Parsed CSV rows (with Papa Parse):", parsed.data);
-    // The first row is typically the header row,
-    // so we'll return everything after row 0:
-    return parsed.data.slice(1);
-  }
+/* ---------- SECTORS CHART (unchanged logic) ---------- */
+let sectorsChart,sectorsMode='total',sectorsAIType='genAI',sectorsLabels=[],industryTotalGen=[],serviceTotalGen=[],industryTotalNonGen=[],serviceTotalNonGen=[],industryShareGen=[],serviceShareGen=[],industryShareNonGen=[],serviceShareNonGen=[];
+function quarterLabel(i){const y=2019+Math.floor(i/4),q=(i%4)+1;return`Q${q} ${y}`}
+function createSectorsChart(){const ctx=document.getElementById('sectorsChart').getContext('2d');sectorsChart=new Chart(ctx,{type:'bar',data:{labels:sectorsLabels,datasets:[{label:'Industrie',data:[]},{label:'Services',data:[]}]},options:{responsive:true}});updateSectorsChart()}
+function updateSectorsChart(){let ind,serv;if(sectorsMode==='total'&&sectorsAIType==='genAI'){ind=industryTotalGen;serv=serviceTotalGen}else if(sectorsMode==='total'){ind=industryTotalNonGen;serv=serviceTotalNonGen}else if(sectorsAIType==='genAI'){ind=industryShareGen;serv=serviceShareGen}else{ind=industryShareNonGen;serv=serviceShareNonGen}sectorsChart.data.datasets[0].data=ind;sectorsChart.data.datasets[1].data=serv;sectorsChart.update()}
+function toggleSectorsTotalShare(){sectorsMode=sectorsMode==='total'?'share':'total';updateSectorsChart()}
+function toggleSectorsGenNonGen(){sectorsAIType=sectorsAIType==='genAI'?'nonGenAI':'genAI';updateSectorsChart()}
 
-  /****************************************************
-   * 1) OFFERS CHART
-   ****************************************************/
-  let offersChart;
-  let offersMode = 'total';
+/* ---------- MAP (unchanged logic) ---------- */
+let mapOffers,mapOffersMode='total',mapOffersAI='ai',mapGeoLayers=[],mapData=[];
+function pickColor(v){if(isNaN(v))return'#ccc';if(v<10)return'#fee5d9';if(v<50)return'#fcae91';if(v<200)return'#fb6a4a';if(v<500)return'#de2d26';return'#a50f15'}
+function toggleMapTotalShare(){mapOffersMode=mapOffersMode==='total'?'share':'total';recolorMap()}
+function toggleMapAiGen(){mapOffersAI=mapOffersAI==='ai'?'gen':'ai';recolorMap()}
+function recolorMap(){let c;if(mapOffersAI==='ai'&&mapOffersMode==='total'){c='ia'}else if(mapOffersAI==='ai'){c='ia_rel'}else if(mapOffersMode==='total'){c='ia générative'}else{c='ia générative_rel'}mapGeoLayers.forEach(o=>{const v=parseFloat(o.rowData[c]);o.layer.setStyle({fillColor:pickColor(v)})})}
+function createMapOffers(){mapOffers=L.map('mapOffers').setView([46.8,2],6);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap'}).addTo(mapOffers);mapData.forEach(r=>{try{const g=JSON.parse(r.geometry);const l=L.geoJSON(g,{style:{fillColor:'#ccc',color:'#888',weight:1,fillOpacity:.6}}).addTo(mapOffers);l.bindPopup(`<b>${r['Nom Officiel Zone emploi 2020']}</b><br/>AI: ${r.ia}<br/>Share AI: ${r.ia_rel}<br/>GenAI: ${r['ia générative']}<br/>Share GenAI: ${r['ia générative_rel']}`);mapGeoLayers.push({layer:l,rowData:r})}catch{}});recolorMap()}
 
-  let dateLabels = [];
-  let totalDataOffersGen = [];
-  let totalDataOffersGeneral = [];
-  let totalDataOffersCV = [];
+/* ---------- LOAD ALL DATA ---------- */
+window.onload=async()=>{try{
+  /* home‑page */
+  const g=parseCsv(await fetchCsv('data/general_results.csv'));const d={};g.forEach(r=>d[r[0]]=parseFloat(r[1])||0);
+  document.getElementById('aiOffersValue').textContent=d["Total IA offers"]||0;
+  document.getElementById('aiOffersLastQuarter').textContent=`+${d["Number of AI offers in last quarter"]||0} offers last quarter`;
+  document.getElementById('aiFirmsValue').textContent=d["Number of firms with AI offers"]||0;
+  document.getElementById('aiFirmsLastQuarter').textContent=`+${d["Number of new AI adopters in last quarter"]||0} new firms last quarter`;
+  document.getElementById('genAiOffersValue').textContent=d["Total IA générative offers"]||0;
+  document.getElementById('genAiOffersLastQuarter').textContent=`+${d["Number of GenAI offers in last quarter"]||0} offers last quarter`;
+  document.getElementById('genAiFirmsValue').textContent=d["Number of firms with GenAI offers"]||0;
+  document.getElementById('genAiFirmsLastQuarter').textContent='(no data)';
 
-  let shareDataOffersGen = [];
-  let shareDataOffersGeneral = [];
-  let shareDataOffersCV = [];
+  /* offers csvs */
+  parseCsv(await fetchCsv('data/offers_total.csv')).forEach(r=>{const i=parseInt(r[0]);dateLabels.push(monthLabel(i));totalDataOffersGen.push(+r[1]);totalDataOffersGeneral.push(+r[2]);totalDataOffersCV.push(+r[3])});
+  parseCsv(await fetchCsv('data/offers_share.csv')).forEach(r=>{shareDataOffersGen.push(+r[1]);shareDataOffersGeneral.push(+r[2]);shareDataOffersCV.push(+r[3])});
 
-  function monthLabel(i){
-    const baseYear=2019;
-    const year = baseYear + Math.floor(i/12);
-    const month = (i%12)+1;
-    return `${year}-${String(month).padStart(2,"0")}`;
-  }
+  /* sectors csvs */
+  parseCsv(await fetchCsv('data/two_sectors_total_gen.csv')).forEach(r=>{const idx=parseInt(r[0]);if(sectorsLabels.length<=idx)sectorsLabels.push(quarterLabel(idx));industryTotalGen.push(+r[1]);serviceTotalGen.push(+r[2])});
+  parseCsv(await fetchCsv('data/two_sectors_total_nongen.csv')).forEach(r=>{industryTotalNonGen.push(+r[1]);serviceTotalNonGen.push(+r[2])});
+  parseCsv(await fetchCsv('data/two_sectors_share_gen.csv')).forEach(r=>{industryShareGen.push(+r[1]);serviceShareGen.push(+r[2])});
+  parseCsv(await fetchCsv('data/two_sectors_share_nongen.csv')).forEach(r=>{industryShareNonGen.push(+r[1]);serviceShareNonGen.push(+r[2])});
 
-  function createOffersChart(){
-    const ctx = document.getElementById("offersChart").getContext("2d");
-    offersChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: dateLabels,
-        datasets: [
-          {
-            label: 'IA Générative',
-            data: totalDataOffersGen,
-          },
-          {
-            label: 'IA Générale',
-            data: totalDataOffersGeneral,
-          },
-          {
-            label: 'Computer Vision',
-            data: totalDataOffersCV,
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          x: { stacked: true },
-          y: { stacked: true }
-        }
-      }
-    });
-  }
+  /* NEW firm‑size csv */
+  parseCsv(await fetchCsv('data/distrib_size.csv')).forEach(r=>{sizeLabels.push(r[0]);shareSizeAi.push(+r[1]);shareSizeGen.push(+r[2])});
 
-  function toggleTotalShare(chartName){
-    if(chartName==='offersChart'){
-      offersMode=(offersMode==='total')?'share':'total';
-      if(offersMode==='total'){
-        offersChart.data.datasets[0].data=totalDataOffersGen;
-        offersChart.data.datasets[1].data=totalDataOffersGeneral;
-        offersChart.data.datasets[2].data=totalDataOffersCV;
-      } else {
-        offersChart.data.datasets[0].data=shareDataOffersGen;
-        offersChart.data.datasets[1].data=shareDataOffersGeneral;
-        offersChart.data.datasets[2].data=shareDataOffersCV;
-      }
-      offersChart.update();
-    }
-  }
+  /* map csv */
+  parseCsv(await fetchCsv('data/map_offers.csv')).forEach(r=>mapData.push({'Nom Officiel Zone emploi 2020':r[0],geometry:r[1],ia:r[2],ia_rel:r[3],'ia générative':r[4],'ia générative_rel':r[5],total_offers:r[6]}));
 
-  /****************************************************
-   * 2) SECTORS CHART
-   ****************************************************/
-  let sectorsChart;
-  let sectorsMode='total';   // or 'share'
-  let sectorsAIType='genAI'; // or 'nonGenAI'
-  let sectorsLabels=[];
-
-  let industryTotalGen=[], serviceTotalGen=[];
-  let industryTotalNonGen=[], serviceTotalNonGen=[];
-  let industryShareGen=[], serviceShareGen=[];
-  let industryShareNonGen=[], serviceShareNonGen=[];
-
-  function quarterLabel(i){
-    const baseYear = 2019;
-    const year = baseYear + Math.floor(i/4);
-    const q = (i % 4) + 1;
-    return `Q${q} ${year}`;
-  }
-
-  function createSectorsChart(){
-    const ctx=document.getElementById("sectorsChart").getContext('2d');
-    sectorsChart=new Chart(ctx,{
-      type:'bar',
-      data:{
-        labels: sectorsLabels,
-        datasets:[
-          {
-            label:'Industrie',
-            data:[]
-          },
-          {
-            label:'Services',
-            data:[]
-          }
-        ]
-      },
-      options:{responsive:true}
-    });
-    updateSectorsChart();
-  }
-  function updateSectorsChart(){
-    let indData, servData;
-    if(sectorsMode==='total' && sectorsAIType==='genAI'){
-      indData=industryTotalGen; servData=serviceTotalGen;
-    } else if(sectorsMode==='total' && sectorsAIType==='nonGenAI'){
-      indData=industryTotalNonGen; servData=serviceTotalNonGen;
-    } else if(sectorsMode==='share' && sectorsAIType==='genAI'){
-      indData=industryShareGen; servData=serviceShareGen;
-    } else {
-      indData=industryShareNonGen; servData=serviceShareNonGen;
-    }
-    sectorsChart.data.datasets[0].data=indData;
-    sectorsChart.data.datasets[1].data=servData;
-    sectorsChart.update();
-  }
-  function toggleSectorsTotalShare(){
-    sectorsMode=(sectorsMode==='total')?'share':'total';
-    updateSectorsChart();
-  }
-  function toggleSectorsGenNonGen(){
-    sectorsAIType=(sectorsAIType==='genAI')?'nonGenAI':'genAI';
-    updateSectorsChart();
-  }
-
-  /****************************************************
-   * 3) MAP OFFERS
-   ****************************************************/
-  let mapOffers;           
-  let mapOffersMode='total';  
-  let mapOffersAI='ai';       
-  let mapGeoLayers=[];     
-  let mapData=[];          
-
-  function pickColor(val){
-    if(isNaN(val)) return '#cccccc';
-    if(val<10) return '#fee5d9';
-    if(val<50) return '#fcae91';
-    if(val<200) return '#fb6a4a';
-    if(val<500) return '#de2d26';
-    return '#a50f15';
-  }
-
-  function toggleMapTotalShare(){
-    mapOffersMode=(mapOffersMode==='total')?'share':'total';
-    recolorMap();
-  }
-  function toggleMapAiGen(){
-    mapOffersAI=(mapOffersAI==='ai')?'gen':'ai';
-    recolorMap();
-  }
-  function recolorMap(){
-    let colName;
-    if(mapOffersAI==='ai' && mapOffersMode==='total'){
-      colName='ia';
-    } else if(mapOffersAI==='ai' && mapOffersMode==='share'){
-      colName='ia_rel';
-    } else if(mapOffersAI==='gen' && mapOffersMode==='total'){
-      colName='ia générative';
-    } else {
-      colName='ia générative_rel';
-    }
-    mapGeoLayers.forEach(obj=>{
-      const row=obj.rowData;
-      const val=parseFloat(row[colName]);
-      const color=pickColor(val);
-      obj.layer.setStyle({ fillColor: color });
-    });
-  }
-
-  function createMapOffers(){
-    mapOffers = L.map('mapOffers').setView([46.8,2.0],6);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-      attribution:'&copy; OpenStreetMap'
-    }).addTo(mapOffers);
-
-    mapData.forEach(row=>{
-      try{
-        const geo = JSON.parse(row.geometry);
-        const layer = L.geoJSON(geo, {
-          style: {
-            fillColor:'#ccc',
-            color:'#888',
-            weight:1,
-            fillOpacity:0.6
-          }
-        }).addTo(mapOffers);
-
-        mapGeoLayers.push({ layer, rowData: row });
-
-        layer.bindPopup(`
-          <b>${row['Nom Officiel Zone emploi 2020']}</b><br/>
-          AI: ${row.ia}<br/>
-          Share AI: ${row.ia_rel}<br/>
-          GenAI: ${row['ia générative']}<br/>
-          Share GenAI: ${row['ia générative_rel']}
-        `);
-      } catch(err){
-        console.warn("Invalid geometry for row:", row["Nom Officiel Zone emploi 2020"], err);
-      }
-    });
-    recolorMap();
-  }
-
-  /****************************************************
-   * On load: fetch CSV & build
-   ****************************************************/
-  window.onload = async function(){
-    try{
-      /****************************************
-       * 0) General Results for Home Page
-       ****************************************/
-      {
-        const genResCsv = await fetchCsv('data/general_results.csv');
-        const genResRows = parseCsv(genResCsv);
-        let genResults = {};
-        for(let row of genResRows){
-          const metric = row[0];
-          const valNum = parseFloat(row[1]) || 0;
-          genResults[metric] = valNum;
-        }
-
-        // Fill AI figure cards
-        document.getElementById('aiOffersValue').textContent = genResults["Total IA offers"] || "0";
-        const lastQtrOffers = genResults["Number of AI offers in last quarter"] || 0;
-        document.getElementById('aiOffersLastQuarter').textContent = `+${lastQtrOffers} offers last quarter`;
-
-        document.getElementById('aiFirmsValue').textContent = genResults["Number of firms with AI offers"] || "0";
-        const newAiFirms = genResults["Number of new AI adopters in last quarter"] || 0;
-        document.getElementById('aiFirmsLastQuarter').textContent = `+${newAiFirms} new firms last quarter`;
-
-        // Fill GenAI figure cards
-        document.getElementById('genAiOffersValue').textContent = genResults["Total IA générative offers"] || "0";
-        const lastQtrGenOffers = genResults["Number of GenAI offers in last quarter"] || 0;
-        document.getElementById('genAiOffersLastQuarter').textContent = `+${lastQtrGenOffers} offers last quarter`;
-
-        document.getElementById('genAiFirmsValue').textContent = genResults["Number of firms with GenAI offers"] || "0";
-        // If there's no row for new GenAI adopters, just show "no data"
-        document.getElementById('genAiFirmsLastQuarter').textContent = "(no data)";
-      }
-
-      /****************************************
-       * 1) OFFERS
-       ****************************************/
-      {
-        const totalCsv = await fetchCsv('data/offers_total.csv');
-        const totalRows = parseCsv(totalCsv);
-        for(let row of totalRows){
-          const i = parseInt(row[0]);
-          dateLabels.push(monthLabel(i));
-          totalDataOffersGen.push(parseFloat(row[1]));
-          totalDataOffersGeneral.push(parseFloat(row[2]));
-          totalDataOffersCV.push(parseFloat(row[3]));
-        }
-        const shareCsv = await fetchCsv('data/offers_share.csv');
-        const shareRows = parseCsv(shareCsv);
-        for(let row of shareRows){
-          shareDataOffersGen.push(parseFloat(row[1]));
-          shareDataOffersGeneral.push(parseFloat(row[2]));
-          shareDataOffersCV.push(parseFloat(row[3]));
-        }
-      }
-
-      /****************************************
-       * 2) SECTORS
-       ****************************************/
-      {
-        // total_gen
-        const tgenText = await fetchCsv('data/two_sectors_total_gen.csv');
-        const tgenRows = parseCsv(tgenText);
-        for(let row of tgenRows){
-          const idx = parseInt(row[0]);
-          if(sectorsLabels.length <= idx){
-            sectorsLabels.push(quarterLabel(idx));
-          }
-          industryTotalGen.push(parseFloat(row[1]));
-          serviceTotalGen.push(parseFloat(row[2]));
-        }
-        // total_nongen
-        const tnongen = await fetchCsv('data/two_sectors_total_nongen.csv');
-        const tnongenRows = parseCsv(tnongen);
-        for(let row of tnongenRows){
-          industryTotalNonGen.push(parseFloat(row[1]));
-          serviceTotalNonGen.push(parseFloat(row[2]));
-        }
-        // share_gen
-        const sgenText = await fetchCsv('data/two_sectors_share_gen.csv');
-        const sgenRows = parseCsv(sgenText);
-        for(let row of sgenRows){
-          industryShareGen.push(parseFloat(row[1]));
-          serviceShareGen.push(parseFloat(row[2]));
-        }
-        // share_nongen
-        const snongenText = await fetchCsv('data/two_sectors_share_nongen.csv');
-        const snongenRows = parseCsv(snongenText);
-        for(let row of snongenRows){
-          industryShareNonGen.push(parseFloat(row[1]));
-          serviceShareNonGen.push(parseFloat(row[2]));
-        }
-      }
-
-      /****************************************
-       * 3) MAP
-       ****************************************/
-      {
-        const mapCsv = await fetchCsv('data/map_offers.csv');
-        const mapRows = parseCsv(mapCsv);
-        for(let row of mapRows){
-          let obj = {
-            'Nom Officiel Zone emploi 2020': row[0],
-            geometry: row[1],
-            ia: row[2],
-            ia_rel: row[3],
-            'ia générative': row[4],
-            'ia générative_rel': row[5],
-            total_offers: row[6]
-          };
-          mapData.push(obj);
-        }
-      }
-
-      // Build charts + map
-      createOffersChart();
-      createSectorsChart();
-      createMapOffers();
-
-    } catch(err){
-      console.error("Error loading data:", err);
-    }
-  };
+  /* build charts + map */
+  createOffersChart();createSectorsChart();createSizeChart();createMapOffers();
+}catch(e){console.error('Error:',e)}};
 </script>
 </body>
 </html>
