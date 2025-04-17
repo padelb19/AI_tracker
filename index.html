@@ -15,7 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
-    /* ---------- GLOBAL STYLES ---------- */
+    /* -------- GLOBAL LAYOUT -------- */
     body{margin:0;padding:0;font-family:Arial, sans-serif;background:#fff}
     header{width:100%;background:#f2f2f2;padding:10px}
     .header-top{display:flex;align-items:center}
@@ -29,39 +29,40 @@
     nav button:hover{background:#eee}
     .page{display:none;padding:20px}.active{display:block}
 
-    /* accueil cards */
+    /* -------- HOME -------- */
     #accueil h2{text-align:center;margin-top:30px}
     .explanation{max-width:800px;margin:30px auto;text-align:center;line-height:1.4em}
     .additional-figures{max-width:1000px;margin:40px auto}
     .figures-row{display:flex;flex-wrap:wrap;justify-content:center;gap:20px;margin-bottom:40px}
     .key-figure-card{border:1px solid #ccc;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,.1);padding:20px;width:200px;text-align:center;background:#fff}
 
-    /* dashboards */
+    /* -------- DASHBOARDS -------- */
     #dashboards{margin:0 auto;max-width:1000px}
     #dashboards h2{text-align:center;margin-bottom:10px}
     .sub-nav{text-align:center;margin-bottom:20px}
     .sub-nav button{margin:5px;background:#fff;border:1px solid #ccc;cursor:pointer;border-radius:4px}
     .chart-section{margin-bottom:40px}
     .chart-container{max-width:800px;width:100%;margin:0 auto}
-    /* small pie */
+    /* pie‑size chart smaller */
     #sizeSection .chart-container{max-width:400px;height:400px;margin:0 auto}
     /* map */
     #mapOffersSection .map-container{width:600px;height:600px;margin:0 auto}
 
-    /* toggle buttons */
-    .toggle-btn{position:relative;display:inline-block;width:90px;height:30px;border:none;border-radius:15px;background:#ccc;color:#fff;font-size:12px;font-weight:bold;cursor:pointer;transition:background .3s}
+    /* -------- TOGGLE BUTTONS -------- */
+    .toggle-btn{position:relative;display:inline-block;width:90px;height:30px;border:none;border-radius:15px;background:#ccc;cursor:pointer;transition:background .3s}
     .toggle-btn .slider{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .3s}
     .toggle-btn.active{background:#4caf50}
     .toggle-btn.active .slider{left:63px}
-    .toggle-label{margin-left:8px;font-size:14px;font-weight:bold}
+    .toggle-label{margin-left:8px;font-size:14px;font-weight:bold;color:#333}
     .chart-controls{display:flex;justify-content:center;align-items:center;gap:15px;margin:10px 0}
 
-    /* projects */
+    /* -------- PROJECTS -------- */
     #projects h2{text-align:center;margin-bottom:40px}
     #projects section{max-width:800px;margin:0 auto 30px}
     #projects section h3{border-bottom:1px solid #ccc;padding-bottom:5px;margin-bottom:10px}
   </style>
 </head>
+
 <body>
 
 <header>
@@ -77,27 +78,28 @@
   </nav>
 </header>
 
-<!-- -------------------- ACCUEIL -------------------- -->
+<!-- ============== HOME ============== -->
 <div id="accueil" class="page active">
   <h2>Welcome to the AI‑tracker!</h2>
   <p style="text-align:center;">Here you can find insights into the evolution of AI adoption by French firms, based on their recruitment data.</p>
   <div class="explanation">
-    This tracker is built using machine‑learning models on the JOCAS database (DARES). By automatically detecting AI‑related job offers, it tracks the diffusion of AI in the French economy.
+    This tracker is built using machine‑learning models on the JOCAS database, edited by the French Ministry of Labor’s DARES. By automatically detecting AI‑related job offers, the AI‑tracker monitors the growing adoption of this technology within the French economy.
   </div>
 
+  <!-- key figures -->
   <div class="additional-figures">
     <div class="figures-row">
-      <div class="key-figure-card"><h4>Total AI Offers</h4><p id="aiOffersValue">...</p><p><small id="aiOffersLastQuarter">...</small></p></div>
-      <div class="key-figure-card"><h4>Firms Having Adopted AI</h4><p id="aiFirmsValue">...</p><p><small id="aiFirmsLastQuarter">...</small></p></div>
+      <div class="key-figure-card"><h4>Total AI Offers</h4><p id="aiOffersValue">…</p><p><small id="aiOffersLastQuarter">…</small></p></div>
+      <div class="key-figure-card"><h4>Firms Having Adopted AI</h4><p id="aiFirmsValue">…</p><p><small id="aiFirmsLastQuarter">…</small></p></div>
     </div>
     <div class="figures-row">
-      <div class="key-figure-card"><h4>Total GenAI Offers</h4><p id="genAiOffersValue">...</p><p><small id="genAiOffersLastQuarter">...</small></p></div>
-      <div class="key-figure-card"><h4>Firms Having Adopted GenAI</h4><p id="genAiFirmsValue">...</p><p><small id="genAiFirmsLastQuarter">...</small></p></div>
+      <div class="key-figure-card"><h4>Total GenAI Offers</h4><p id="genAiOffersValue">…</p><p><small id="genAiOffersLastQuarter">…</small></p></div>
+      <div class="key-figure-card"><h4>Firms Having Adopted GenAI</h4><p id="genAiFirmsValue">…</p><p><small id="genAiFirmsLastQuarter">…</small></p></div>
     </div>
   </div>
 </div>
 
-<!-- -------------------- DASHBOARDS -------------------- -->
+<!-- ============== DASHBOARDS ============== -->
 <div id="dashboards" class="page">
   <h2>Dashboards</h2>
 
@@ -108,63 +110,61 @@
     <button onclick="scrollToSection('mapOffersSection')">Map</button>
   </div>
 
-  <!-- 1) offers -->
+  <!-- OFFERS -->
   <div id="totalOffersSection" class="chart-section">
     <h3>Evolution of AI‑Related Job Offers</h3>
     <div class="chart-controls">
       <button id="btnOfferMode" class="toggle-btn" onclick="toggleTotalShare()"><span class="slider"></span></button>
-      <span class="toggle-label" id="lblOfferMode">Total</span>
+      <span id="lblOfferMode" class="toggle-label">Total</span>
     </div>
     <div class="chart-container"><canvas id="offersChart"></canvas></div>
   </div>
 
-  <!-- 2) sectors -->
+  <!-- SECTORS -->
   <div id="sectorsSection" class="chart-section">
     <h3>Firms Adopting AI by Sector</h3>
     <div class="chart-controls">
       <button id="btnSectorMode" class="toggle-btn" onclick="toggleSectorsTotalShare()"><span class="slider"></span></button>
-      <span class="toggle-label" id="lblSectorMode">Total</span>
-
+      <span id="lblSectorMode" class="toggle-label">Total</span>
       <button id="btnSectorCat" class="toggle-btn" onclick="toggleSectorsGenNonGen()"><span class="slider"></span></button>
-      <span class="toggle-label" id="lblSectorCat">Gen AI</span>
+      <span id="lblSectorCat" class="toggle-label">Gen AI</span>
     </div>
     <div class="chart-container"><canvas id="sectorsChart"></canvas></div>
   </div>
 
-  <!-- 2.5) firm‑size pie -->
+  <!-- FIRM‑SIZE PIE -->
   <div id="sizeSection" class="chart-section">
-    <h3>Distribution of AI Adopters by Firm Size</h3>
+    <h3>Distribution of AI Adopters by Firm Size</h3>
     <div class="chart-controls">
       <button id="btnSizeCat" class="toggle-btn" onclick="toggleSizeAiGen()"><span class="slider"></span></button>
-      <span class="toggle-label" id="lblSizeCat">AI</span>
+      <span id="lblSizeCat" class="toggle-label">AI</span>
     </div>
     <div class="chart-container"><canvas id="sizeChart"></canvas></div>
   </div>
 
-  <!-- 3) map -->
+  <!-- MAP -->
   <div id="mapOffersSection" class="chart-section">
     <h3>Map of French Zones d’Emplois</h3>
     <div class="chart-controls">
       <button id="btnMapMode" class="toggle-btn" onclick="toggleMapTotalShare()"><span class="slider"></span></button>
-      <span class="toggle-label" id="lblMapMode">Total</span>
-
+      <span id="lblMapMode" class="toggle-label">Total</span>
       <button id="btnMapCat" class="toggle-btn" onclick="toggleMapAiGen()"><span class="slider"></span></button>
-      <span class="toggle-label" id="lblMapCat">AI</span>
+      <span id="lblMapCat" class="toggle-label">AI</span>
     </div>
     <div class="map-container" id="mapOffers"></div>
   </div>
 </div>
 
-<!-- -------------------- PROJECTS -------------------- -->
+<!-- ============== PROJECTS ============== -->
 <div id="projects" class="page">
   <h2>Projects</h2>
   <section class="authors">
     <h3>Authors</h3>
-    <p>This AI‑tracker is developed by:</p>
+    <p>This AI‑tracker is an ongoing work developed by :</p>
     <ul>
-      <li>Paul Delbouve (Collège de France, PSE, DGE)</li>
-      <li>Philippe Aghion (Collège de France, INSEAD, LSE, CEPR)</li>
-      <li>Antonin Bergeaud (HEC Paris, CEP‑LSE, CEPR)</li>
+      <li><strong>Paul Delbouve</strong> — Collège de France, PSE, DGE (Ministère de l’Économie)</li>
+      <li><strong>Philippe Aghion</strong> — Collège de France, INSEAD, LSE, CEPR</li>
+      <li><strong>Antonin Bergeaud</strong> — HEC Paris, CEP‑LSE, CEPR</li>
     </ul>
   </section>
   <section class="papers">
@@ -173,30 +173,29 @@
   </section>
 </div>
 
-<!-- -------------------- SCRIPTS -------------------- -->
+<!-- ============== SCRIPTS ============== -->
 <script>
-/* ---------- basic helpers ---------- */
+/* ---------- helpers & navigation ---------- */
 function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');if(id==='dashboards'&&mapOffers){setTimeout(()=>mapOffers.invalidateSize(),100)}}
 function scrollToSection(id){const el=document.getElementById(id);if(el){showPage('dashboards');el.scrollIntoView({behavior:'smooth'})}}
 async function fetchCsv(u){const r=await fetch(u);if(!r.ok)throw`fetch ${u}`;return r.text()}
 function parseCsv(t){return Papa.parse(t,{header:false,skipEmptyLines:true}).data.slice(1)}
-function setToggle(btn,label,active,txt){btn.classList.toggle('active',active);label.textContent=txt;}
+function setToggle(btn,label,active,text){btn.classList.toggle('active',active);label.textContent=text;}
 
-/* ---------- date helpers ---------- */
-function monthLabel(i){const y=2019+Math.floor(i/12),m=(i%12)+1;return`${y}-${String(m).padStart(2,'0')}`;}
-function quarterLabel(i){const y=2019+Math.floor(i/4),q=(i%4)+1;return`Q${q} ${y}`;}
+/* ---------- tiny date helpers ---------- */
+function monthLabel(i){const y=2019+Math.floor(i/12),m=(i%12)+1;return`${y}-${String(m).padStart(2,'0')}`}
+function quarterLabel(i){const y=2019+Math.floor(i/4),q=(i%4)+1;return`Q${q} ${y}`}
 
-/* ---------- ARRAYS ---------- */
+/* ---------- ARRAYS for charts ---------- */
 let dateLabels=[],totalDataOffersGen=[],totalDataOffersGeneral=[],totalDataOffersCV=[],shareDataOffersGen=[],shareDataOffersGeneral=[],shareDataOffersCV=[];
 let sectorsLabels=[],industryTotalGen=[],serviceTotalGen=[],industryTotalNonGen=[],serviceTotalNonGen=[],industryShareGen=[],serviceShareGen=[],industryShareNonGen=[],serviceShareNonGen=[];
 let sizeLabels=[],shareSizeAi=[],shareSizeGen=[];
-let mapGeoLayers=[],mapData=[];
+let mapData=[],mapGeoLayers=[];
 
 /* ---------- OFFERS CHART ---------- */
 let offersChart,offersMode='total';
 function createOffersChart(){
-  offersChart=new Chart(document.getElementById('offersChart'),{
-    type:'bar',
+  offersChart=new Chart(offersChartCanvas,{type:'bar',
     data:{labels:dateLabels,datasets:[
       {label:'IA Générative',data:totalDataOffersGen},
       {label:'IA Générale',data:totalDataOffersGeneral},
@@ -215,11 +214,8 @@ function toggleTotalShare(){
 /* ---------- SECTORS CHART ---------- */
 let sectorsChart,sectorsMode='total',sectorsAIType='genAI';
 function createSectorsChart(){
-  sectorsChart=new Chart(document.getElementById('sectorsChart'),{
-    type:'bar',
-    data:{labels:sectorsLabels,datasets:[
-      {label:'Industrie',data:[]},
-      {label:'Services',data:[]}]},
+  sectorsChart=new Chart(sectorsChartCanvas,{type:'bar',
+    data:{labels:sectorsLabels,datasets:[{label:'Industrie',data:[]},{label:'Services',data:[]}]},
     options:{responsive:true}});
   updateSectorsChart();
 }
@@ -233,29 +229,17 @@ function updateSectorsChart(){
   sectorsChart.data.datasets[1].data=serv;
   sectorsChart.update();
 }
-function toggleSectorsTotalShare(){
-  sectorsMode=sectorsMode==='total'?'share':'total';updateSectorsChart();
-  setToggle(btnSectorMode,lblSectorMode,sectorsMode==='share',sectorsMode.charAt(0).toUpperCase()+sectorsMode.slice(1));
-}
-function toggleSectorsGenNonGen(){
-  sectorsAIType=sectorsAIType==='genAI'?'nonGenAI':'genAI';updateSectorsChart();
-  setToggle(btnSectorCat,lblSectorCat,sectorsAIType!=='genAI',sectorsAIType==='genAI'?'Gen AI':'Non‑Gen');
-}
+function toggleSectorsTotalShare(){sectorsMode=sectorsMode==='total'?'share':'total';updateSectorsChart();setToggle(btnSectorMode,lblSectorMode,sectorsMode==='share',sectorsMode.charAt(0).toUpperCase()+sectorsMode.slice(1))}
+function toggleSectorsGenNonGen(){sectorsAIType=sectorsAIType==='genAI'?'nonGenAI':'genAI';updateSectorsChart();setToggle(btnSectorCat,lblSectorCat,sectorsAIType!=='genAI',sectorsAIType==='genAI'?'Gen AI':'Non‑Gen')}
 
-/* ---------- FIRM‑SIZE PIE ---------- */
+/* ---------- SIZE PIE ---------- */
 let sizeChart,sizeAiType='ai';
 function createSizeChart(){
-  sizeChart=new Chart(document.getElementById('sizeChart'),{
-    type:'pie',
+  sizeChart=new Chart(sizeChartCanvas,{type:'pie',
     data:{labels:sizeLabels,datasets:[{data:shareSizeAi}]},
     options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
 }
-function toggleSizeAiGen(){
-  sizeAiType=sizeAiType==='ai'?'gen':'ai';
-  sizeChart.data.datasets[0].data=sizeAiType==='ai'?shareSizeAi:shareSizeGen;
-  sizeChart.update();
-  setToggle(btnSizeCat,lblSizeCat,sizeAiType==='gen','Gen AI');
-}
+function toggleSizeAiGen(){sizeAiType=sizeAiType==='ai'?'gen':'ai';sizeChart.data.datasets[0].data=sizeAiType==='ai'?shareSizeAi:shareSizeGen;sizeChart.update();setToggle(btnSizeCat,lblSizeCat,sizeAiType==='gen','Gen AI')}
 
 /* ---------- MAP ---------- */
 let mapOffers,mapOffersMode='total',mapOffersAI='ai';
@@ -270,51 +254,42 @@ function createMapOffers(){
   }catch{}});recolorMap();
 }
 function recolorMap(){
-  let col;
-  if(mapOffersAI==='ai' && mapOffersMode==='total')      col='ia';
-  else if(mapOffersAI==='ai')                           col='ia_rel';
-  else if(mapOffersMode==='total')                      col='ia générative';
-  else                                                  col='ia générative_rel';
+  const col=(mapOffersAI==='ai'?(mapOffersMode==='total'?'ia':'ia_rel'):(mapOffersMode==='total'?'ia générative':'ia générative_rel'));
   mapGeoLayers.forEach(o=>o.layer.setStyle({fillColor:pickColor(+o.rowData[col])}));
 }
-function toggleMapTotalShare(){
-  mapOffersMode=mapOffersMode==='total'?'share':'total';recolorMap();
-  setToggle(btnMapMode,lblMapMode,mapOffersMode==='share',mapOffersMode.charAt(0).toUpperCase()+mapOffersMode.slice(1));
-}
-function toggleMapAiGen(){
-  mapOffersAI=mapOffersAI==='ai'?'gen':'ai';recolorMap();
-  setToggle(btnMapCat,lblMapCat,mapOffersAI==='gen','Gen AI');
-}
+function toggleMapTotalShare(){mapOffersMode=mapOffersMode==='total'?'share':'total';recolorMap();setToggle(btnMapMode,lblMapMode,mapOffersMode==='share',mapOffersMode.charAt(0).toUpperCase()+mapOffersMode.slice(1))}
+function toggleMapAiGen(){mapOffersAI=mapOffersAI==='ai'?'gen':'ai';recolorMap();setToggle(btnMapCat,lblMapCat,mapOffersAI==='gen','Gen AI')}
 
 /* ---------- LOAD CSVs & BUILD ---------- */
 window.onload=async()=>{try{
-  /* home page figures */
-  parseCsv(await fetchCsv('data/general_results.csv')).forEach(r=>window.gen||(window.gen={})&&(gen[r[0]]=+r[1]||0));
-  document.getElementById('aiOffersValue').textContent=gen["Total IA offers"]||0;
-  document.getElementById('aiOffersLastQuarter').textContent=`+${gen["Number of AI offers in last quarter"]||0} offers last quarter`;
-  document.getElementById('aiFirmsValue').textContent=gen["Number of firms with AI offers"]||0;
-  document.getElementById('aiFirmsLastQuarter').textContent=`+${gen["Number of new AI adopters in last quarter"]||0} new firms last quarter`;
-  document.getElementById('genAiOffersValue').textContent=gen["Total IA générative offers"]||0;
-  document.getElementById('genAiOffersLastQuarter').textContent=`+${gen["Number of GenAI offers in last quarter"]||0} offers last quarter`;
-  document.getElementById('genAiFirmsValue').textContent=gen["Number of firms with GenAI offers"]||0;
+  /* HOME figures */
+  const gen=parseCsv(await fetchCsv('data/general_results.csv')).reduce((o,r)=>(o[r[0]]=+r[1]||0,o),{});
+  aiOffersValue.textContent=gen["Total IA offers"]||0;
+  aiOffersLastQuarter.textContent=`+${gen["Number of AI offers in last quarter"]||0} offers last quarter`;
+  aiFirmsValue.textContent=gen["Number of firms with AI offers"]||0;
+  aiFirmsLastQuarter.textContent=`+${gen["Number of new AI adopters in last quarter"]||0} new firms last quarter`;
+  genAiOffersValue.textContent=gen["Total IA générative offers"]||0;
+  genAiOffersLastQuarter.textContent=`+${gen["Number of GenAI offers in last quarter"]||0} offers last quarter`;
+  genAiFirmsValue.textContent=gen["Number of firms with GenAI offers"]||0;
+  genAiFirmsLastQuarter.textContent="(no data)";
 
-  /* offers data */
+  /* OFFERS */
   parseCsv(await fetchCsv('data/offers_total.csv')).forEach(r=>{dateLabels.push(monthLabel(+r[0]));totalDataOffersGen.push(+r[1]);totalDataOffersGeneral.push(+r[2]);totalDataOffersCV.push(+r[3])});
   parseCsv(await fetchCsv('data/offers_share.csv')).forEach(r=>{shareDataOffersGen.push(+r[1]);shareDataOffersGeneral.push(+r[2]);shareDataOffersCV.push(+r[3])});
 
-  /* sector data */
+  /* SECTORS */
   parseCsv(await fetchCsv('data/two_sectors_total_gen.csv')).forEach(r=>{const i=+r[0];if(sectorsLabels.length<=i)sectorsLabels.push(quarterLabel(i));industryTotalGen.push(+r[1]);serviceTotalGen.push(+r[2])});
   parseCsv(await fetchCsv('data/two_sectors_total_nongen.csv')).forEach(r=>{industryTotalNonGen.push(+r[1]);serviceTotalNonGen.push(+r[2])});
   parseCsv(await fetchCsv('data/two_sectors_share_gen.csv')).forEach(r=>{industryShareGen.push(+r[1]);serviceShareGen.push(+r[2])});
   parseCsv(await fetchCsv('data/two_sectors_share_nongen.csv')).forEach(r=>{industryShareNonGen.push(+r[1]);serviceShareNonGen.push(+r[2])});
 
-  /* firm‑size */
+  /* FIRM‑SIZE */
   parseCsv(await fetchCsv('data/distrib_size.csv')).forEach(r=>{sizeLabels.push(r[0]);shareSizeAi.push(+r[1]);shareSizeGen.push(+r[2])});
 
-  /* map */
+  /* MAP */
   parseCsv(await fetchCsv('data/map_offers.csv')).forEach(r=>mapData.push({'Nom Officiel Zone emploi 2020':r[0],geometry:r[1],ia:r[2],ia_rel:r[3],'ia générative':r[4],'ia générative_rel':r[5],total_offers:r[6]}));
 
-  /* build visuals */
+  /* BUILD visuals */
   createOffersChart();createSectorsChart();createSizeChart();createMapOffers();
 }catch(e){console.error(e)}};
 </script>
