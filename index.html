@@ -15,7 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
-    /* -------- GLOBAL -------- */
+    /* GLOBAL */
     *{box-sizing:border-box}
     body{margin:0;font-family:Arial, sans-serif;background:#fff}
     header{background:#f2f2f2;padding:10px}
@@ -48,14 +48,14 @@
     #sizeSection .chart-container{max-width:400px;height:400px;margin:0 auto}
     #mapOffersSection .map-container{width:600px;height:600px;margin:0 auto}
 
-    /* Two‑state slider toggle */
+    /* two‑state slider toggle */
     .toggle-btn{position:relative;display:inline-block;width:90px;height:30px;border:none;border-radius:15px;background:#ccc;cursor:pointer}
     .toggle-btn .slider{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .25s}
     .toggle-btn.active{background:#7fbf7f}.toggle-btn.active .slider{left:63px}
     .toggle-label{margin-left:8px;font-size:14px;font-weight:bold}
     .chart-controls{display:flex;justify-content:center;align-items:center;gap:15px;margin:10px 0}
 
-    /* Three‑option button group */
+    /* three‑option button group (sector‑evolution) */
     .tri-toggle .evol-btn{border:1px solid #ccc;border-right:none;padding:7px 18px;background:#f6f6f6;font-weight:bold;cursor:pointer}
     .tri-toggle .evol-btn:last-child{border-right:1px solid #ccc}
     .tri-toggle .evol-btn.active{background:#7fbf7f;color:#fff}
@@ -81,7 +81,7 @@
   </nav>
 </header>
 
-<!-- ---------------- HOME ---------------- -->
+<!-- HOME -->
 <div id="accueil" class="page active">
   <h2>Welcome to the AI‑tracker!</h2>
   <p style="text-align:center;">Here you can find insights into the evolution of AI adoption by French firms, based on their recruitment data.</p>
@@ -101,7 +101,7 @@
   </div>
 </div>
 
-<!-- ---------------- DASHBOARDS ---------------- -->
+<!-- DASHBOARDS -->
 <div id="dashboards" class="page">
   <h2>Dashboards</h2>
   <p class="dashboard-intro">
@@ -116,7 +116,7 @@
     <button onclick="scrollToSection('mapOffersSection')">Map</button>
   </div>
 
-  <!-- TOTAL OFFERS -->
+  <!-- TOTAL OFFERS BAR -->
   <div id="totalOffersSection" class="chart-section">
     <h3>Evolution of AI‑Related Job Offers</h3>
     <div class="chart-controls">
@@ -126,7 +126,7 @@
     <div class="chart-container"><canvas id="offersChart"></canvas></div>
   </div>
 
-  <!-- SECTORS -->
+  <!-- SECTOR BAR + AREA -->
   <div id="sectorsSection" class="chart-section">
     <h3>Firms Adopting AI by Sector</h3>
     <div class="chart-controls">
@@ -137,7 +137,6 @@
     </div>
     <div class="chart-container"><canvas id="sectorsChart"></canvas></div>
 
-    <!-- sector shares over time -->
     <h3 style="margin-top:60px;">Sector Share in Published Offers</h3>
     <div class="chart-controls tri-toggle">
       <button class="evol-btn active" id="btnAI"  onclick="setEvolType('ai')">AI</button>
@@ -147,7 +146,7 @@
     <div class="chart-container"><canvas id="sectorEvolChart"></canvas></div>
   </div>
 
-  <!-- SIZE -->
+  <!-- SIZE PIE -->
   <div id="sizeSection" class="chart-section">
     <h3>Distribution of AI Adopters by Firm Size</h3>
     <div class="chart-controls">
@@ -170,7 +169,7 @@
   </div>
 </div>
 
-<!-- ---------------- PROJECTS ---------------- -->
+<!-- PROJECTS -->
 <div id="projects" class="page">
   <h2>Projects</h2>
   <section class="authors">
@@ -188,52 +187,47 @@
   </section>
 </div>
 
-<!-- ---------------- JS ---------------- -->
+<!-- =================   JAVASCRIPT   ================= -->
 <script>
-/* --------‑ Helpers -------- */
-const showPage=id=>{document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');if(id==='dashboards'&&map)L.setTimeout(()=>map.invalidateSize(),100)};
-const scrollToSection=id=>{const el=document.getElementById(id);if(el){showPage('dashboards');el.scrollIntoView({behavior:'smooth'})}};
-const fetchCsv=async url=>{const r=await fetch(url);if(!r.ok)throw`fetch ${url}`;return r.text()};
-const parseCsv=txt=>Papa.parse(txt,{header:false,skipEmptyLines:true}).data.slice(1);
+/* ---------- utility ---------- */
+const showPage=id=>{
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='dashboards' && mapOffers) setTimeout(()=>mapOffers.invalidateSize(),100);
+};
+const scrollToSection=id=>{const e=document.getElementById(id);if(e){showPage('dashboards');e.scrollIntoView({behavior:'smooth'})}};
+const fetchCsv=async u=>{const r=await fetch(u);if(!r.ok)throw`fetch ${u}`;return r.text()};
+const parseCsv=t=>Papa.parse(t,{header:false,skipEmptyLines:true}).data.slice(1);
 const pastel=i=>`hsl(${(i*40)%360},45%,72%)`;
-
 const monthLabel=i=>`${2019+Math.floor(i/12)}-${String((i%12)+1).padStart(2,'0')}`;
 const quarterLabel=i=>`Q${(i%4)+1} ${2019+Math.floor(i/4)}`;
 
-/* --------‑ HOME FIGURES -------- */
+/* ---------- HOME ---------- */
 async function loadHome(){
-  const data=parseCsv(await fetchCsv('data/general_results.csv'))
-               .reduce((o,r)=>(o[r[0]]=+r[1]||0,o),{});
-  aiOffersValue.textContent=data["Total IA offers"]||0;
-  aiOffersLastQuarter.textContent=`+${data["Number of AI offers in last quarter"]||0} offers last quarter`;
-  aiFirmsValue.textContent=data["Number of firms with AI offers"]||0;
-  aiFirmsLastQuarter.textContent=`+${data["Number of new AI adopters in last quarter"]||0} new firms last quarter`;
-  genAiOffersValue.textContent=data["Total IA générative offers"]||0;
-  genAiOffersLastQuarter.textContent=`+${data["Number of GenAI offers in last quarter"]||0} offers last quarter`;
-  genAiFirmsValue.textContent=data["Number of firms with GenAI offers"]||0;
+  const obj=parseCsv(await fetchCsv('data/general_results.csv'))
+            .reduce((o,r)=>(o[r[0]]=+r[1]||0,o),{});
+  aiOffersValue.textContent=obj["Total IA offers"]||0;
+  aiOffersLastQuarter.textContent=`+${obj["Number of AI offers in last quarter"]||0} offers last quarter`;
+  aiFirmsValue.textContent=obj["Number of firms with AI offers"]||0;
+  aiFirmsLastQuarter.textContent=`+${obj["Number of new AI adopters in last quarter"]||0} new firms last quarter`;
+  genAiOffersValue.textContent=obj["Total IA générative offers"]||0;
+  genAiOffersLastQuarter.textContent=`+${obj["Number of GenAI offers in last quarter"]||0} offers last quarter`;
+  genAiFirmsValue.textContent=obj["Number of firms with GenAI offers"]||0;
   genAiFirmsLastQuarter.textContent="(no data)";
 }
 
-/* --------‑ Charts Data Holders -------- */
+/* ---------- OFFERS BAR ---------- */
 let dateLabels=[],totalGen=[],totalAI=[],totalCV=[],shareGen=[],shareAI=[],shareCV=[];
-let qLabels=[],indTotGen=[],servTotGen=[],indTotNon=[],servTotNon=[],indShareGen=[],servShareGen=[],indShareNon=[],servShareNon=[];
-let sizeLabels=[],sizeAi=[],sizeGen=[];
-let mapRows=[];
-let evolDates=[],evolDatesGen=[];
-let evolAI=[],evolGen=[],evolAll=[];
-
-/* --------‑ OFFERS BAR -------- */
 let offersChart,offersMode='total';
 function buildOffers(){
   offersChart=new Chart('offersChart',{type:'bar',
-    data:{labels:dateLabels,
-      datasets:[
-        {label:'GenAI',data:totalGen,backgroundColor:'rgba(120,160,255,.55)'},
-        {label:'AI',   data:totalAI, backgroundColor:'rgba(180,200,255,.55)'},
-        {label:'CV',   data:totalCV, backgroundColor:'rgba(140,200,180,.55)'}]},
-    options:{responsive:true,scales:{x:{stacked:true},y:{stacked:true}}}});
+    data:{labels:dateLabels,datasets:[
+      {label:'GenAI',data:totalGen,backgroundColor:'rgba(255,99,132,.7)'},
+      {label:'AI',   data:totalAI, backgroundColor:'rgba(75,192,192,.7)'},
+      {label:'CV',   data:totalCV, backgroundColor:'rgba(54,162,235,.7)'}]},
+    options:{responsive:true,scales:{x:{stacked:true},y:{stacked:true}}});
 }
-function toggleTotalShare(){
+const toggleTotalShare=()=>{
   offersMode=offersMode==='total'?'share':'total';
   offersChart.data.datasets[0].data=offersMode==='total'?totalGen:shareGen;
   offersChart.data.datasets[1].data=offersMode==='total'?totalAI:shareAI;
@@ -241,43 +235,46 @@ function toggleTotalShare(){
   offersChart.update();
   btnOfferMode.classList.toggle('active',offersMode==='share');
   lblOfferMode.textContent=offersMode.charAt(0).toUpperCase()+offersMode.slice(1);
-}
+};
 
-/* --------‑ Sectors BAR -------- */
-let sectorsChart,sectorMode='total',sectorCat='gen';
-function buildSectors(){
+/* ---------- SECTOR BAR ---------- */
+let qLabels=[],indTotGen=[],servTotGen=[],indTotNon=[],servTotNon=[],indShareGen=[],servShareGen=[],indShareNon=[],servShareNon=[];
+let sectorsChart,secMode='total',secCat='gen';
+function buildSectorBar(){
   sectorsChart=new Chart('sectorsChart',{type:'bar',
     data:{labels:qLabels,
       datasets:[
-        {label:'Industrie',backgroundColor:'rgba(255,190,140,.6)',data:[]},
-        {label:'Services', backgroundColor:'rgba(255,220,180,.6)',data:[]}]},
+        {label:'Industrie',backgroundColor:'rgba(153,102,255,.7)',data:[]},
+        {label:'Services', backgroundColor:'rgba(255,205,86,.7)',data:[]}]},
     options:{responsive:true}});
-  refreshSectors();
+  refreshSectorBar();
 }
-function refreshSectors(){
+function refreshSectorBar(){
   let ind,serv;
-  if(sectorMode==='total'&&sectorCat==='gen'){ind=indTotGen;serv=servTotGen}
-  else if(sectorMode==='total'){ind=indTotNon;serv=servTotNon}
-  else if(sectorCat==='gen'){ind=indShareGen;serv=servShareGen}
+  if(secMode==='total'&&secCat==='gen'){ind=indTotGen;serv=servTotGen}
+  else if(secMode==='total'){ind=indTotNon;serv=servTotNon}
+  else if(secCat==='gen'){ind=indShareGen;serv=servShareGen}
   else{ind=indShareNon;serv=servShareNon}
   sectorsChart.data.datasets[0].data=ind;
   sectorsChart.data.datasets[1].data=serv;
   sectorsChart.update();
 }
-function toggleSectorsTotalShare(){
-  sectorMode=sectorMode==='total'?'share':'total';
-  btnSectorMode.classList.toggle('active',sectorMode==='share');
-  lblSectorMode.textContent=sectorMode.charAt(0).toUpperCase()+sectorMode.slice(1);
-  refreshSectors();
-}
-function toggleSectorsGenNonGen(){
-  sectorCat=sectorCat==='gen'?'nongen':'gen';
-  btnSectorCat.classList.toggle('active',sectorCat!=='gen');
-  lblSectorCat.textContent=sectorCat==='gen'?'Gen AI':'Non‑Gen';
-  refreshSectors();
-}
+const toggleSectorsTotalShare=()=>{
+  secMode=secMode==='total'?'share':'total';
+  btnSectorMode.classList.toggle('active',secMode==='share');
+  lblSectorMode.textContent=secMode.charAt(0).toUpperCase()+secMode.slice(1);
+  refreshSectorBar();
+};
+const toggleSectorsGenNonGen=()=>{
+  secCat=secCat==='gen'?'nongen':'gen';
+  btnSectorCat.classList.toggle('active',secCat!=='gen');
+  lblSectorCat.textContent=secCat==='gen'?'Gen AI':'Non‑Gen';
+  refreshSectorBar();
+};
 
-/* --------‑ Sector Evolution AREA -------- */
+/* ---------- SECTOR EVOLUTION AREA (pastel only here) ---------- */
+let evolDates=[],evolDatesGen=[];
+let evolAI=[],evolGen=[],evolAll=[];
 let evolChart,evolType='ai';
 function buildEvol(){
   evolChart=new Chart('sectorEvolChart',{type:'line',
@@ -286,99 +283,99 @@ function buildEvol(){
 }
 function setEvolType(t){
   evolType=t;
-  btnAI .classList.toggle('active',t==='ai');
-  btnGen.classList.toggle('active',t==='gen');
-  btnAll.classList.toggle('active',t==='all');
+  [btnAI,btnGen,btnAll].forEach(b=>b.classList.remove('active'));
+  (t==='ai'?btnAI:(t==='gen'?btnGen:btnAll)).classList.add('active');
   if(t==='ai'){evolChart.data.labels=evolDates;evolChart.data.datasets=evolAI}
   else if(t==='gen'){evolChart.data.labels=evolDatesGen;evolChart.data.datasets=evolGen}
-  else             {evolChart.data.labels=evolDates;evolChart.data.datasets=evolAll}
+  else{evolChart.data.labels=evolDates;evolChart.data.datasets=evolAll}
   evolChart.update();
 }
 
-/* --------‑ Size PIE -------- */
+/* ---------- SIZE ---------- */
+let sizeLabels=[],sizeAi=[],sizeGen=[];
 let sizeChart,sizeCat='ai';
 function buildSize(){
   sizeChart=new Chart('sizeChart',{type:'pie',
-    data:{labels:sizeLabels,datasets:[{data:sizeAi,backgroundColor:sizeLabels.map((_,i)=>pastel(i))}]},
+    data:{labels:sizeLabels,datasets:[{data:sizeAi}]},
     options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
 }
-function toggleSizeAiGen(){
+const toggleSizeAiGen=()=>{
   sizeCat=sizeCat==='ai'?'gen':'ai';
   btnSizeCat.classList.toggle('active',sizeCat==='gen');
   lblSizeCat.textContent=sizeCat==='gen'?'Gen AI':'AI';
   sizeChart.data.datasets[0].data=sizeCat==='ai'?sizeAi:sizeGen;
   sizeChart.update();
-}
+};
 
-/* --------‑ Map -------- */
-let map,mapMode='total',mapCat='ai';
-const pick=v=>isNaN(v)?'#ccc':v<10?'#e8f0ff':v<50?'#c7dbff':v<200?'#9cc1ff':v<500?'#6fa8ff':'#4e8eff';
+/* ---------- MAP ---------- */
+let mapOffers,mapRows=[],mapMode='total',mapCat='ai';
+const redScale=v=>isNaN(v)?'#ccc':v<10?'#fee5d9':v<50?'#fcae91':v<200?'#fb6a4a':v<500?'#de2d26':'#a50f15';
 function buildMap(){
-  map=L.map('mapOffers').setView([46.8,2],6);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap'}).addTo(map);
-  mapRows.forEach(r=>{const layer=L.geoJSON(JSON.parse(r.geometry),{style:{fillColor:'#c7dbff',color:'#888',weight:1,fillOpacity:.6}}).addTo(map);
+  mapOffers=L.map('mapOffers').setView([46.8,2],6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap'}).addTo(mapOffers);
+  mapRows.forEach(r=>{
+    const layer=L.geoJSON(JSON.parse(r.geometry),{style:{fillColor:'#fcae91',color:'#888',weight:1,fillOpacity:.6}}).addTo(mapOffers);
     layer.bindPopup(`<b>${r.zone}</b><br/>AI: ${r.ia} (${r.ia_rel}%)<br/>GenAI: ${r.gen} (${r.gen_rel}%)`);
-    r.layer=layer;});
+    r.layer=layer;
+  });
   recolorMap();
 }
 function recolorMap(){
   mapRows.forEach(r=>{
     const val=mapCat==='ai'?(mapMode==='total'?r.ia:r.ia_rel):(mapMode==='total'?r.gen:r.gen_rel);
-    r.layer.setStyle({fillColor:pick(+val)})
+    r.layer.setStyle({fillColor:redScale(+val)});
   });
 }
-function toggleMapTotalShare(){
+const toggleMapTotalShare=()=>{
   mapMode=mapMode==='total'?'share':'total';
   btnMapMode.classList.toggle('active',mapMode==='share');
   lblMapMode.textContent=mapMode.charAt(0).toUpperCase()+mapMode.slice(1);
   recolorMap();
-}
-function toggleMapAiGen(){
+};
+const toggleMapAiGen=()=>{
   mapCat=mapCat==='ai'?'gen':'ai';
   btnMapCat.classList.toggle('active',mapCat==='gen');
   lblMapCat.textContent=mapCat==='gen'?'Gen AI':'AI';
   recolorMap();
-}
+};
 
-/* --------‑ LOAD everything -------- */
+/* ---------- LOAD DATA & BUILD ---------- */
 window.onload=async()=>{
   try{
-    /* load HOME */
     await loadHome();
 
-    /* offers data */
-    parseCsv(await fetchCsv('data/offers_total.csv')).forEach(r=>{
-      dateLabels.push(monthLabel(+r[0]));totalGen.push(+r[1]);totalAI.push(+r[2]);totalCV.push(+r[3]);});
-    parseCsv(await fetchCsv('data/offers_share.csv')).forEach(r=>{
-      shareGen.push(+r[1]);shareAI.push(+r[2]);shareCV.push(+r[3]);});
+    /* OFFERS */
+    parseCsv(await fetchCsv('data/offers_total.csv')).forEach(r=>{dateLabels.push(monthLabel(+r[0]));totalGen.push(+r[1]);totalAI.push(+r[2]);totalCV.push(+r[3])});
+    parseCsv(await fetchCsv('data/offers_share.csv')).forEach(r=>{shareGen.push(+r[1]);shareAI.push(+r[2]);shareCV.push(+r[3])});
+    buildOffers();
 
-    /* sector bar data */
-    parseCsv(await fetchCsv('data/two_sectors_total_gen.csv')).forEach(r=>{
-      const i=+r[0];if(qLabels.length<=i)qLabels.push(quarterLabel(i));
-      indTotGen.push(+r[1]);servTotGen.push(+r[2]);});
+    /* SECTOR BAR */
+    parseCsv(await fetchCsv('data/two_sectors_total_gen.csv')).forEach(r=>{const i=+r[0];if(qLabels.length<=i)qLabels.push(quarterLabel(i));indTotGen.push(+r[1]);servTotGen.push(+r[2])});
     parseCsv(await fetchCsv('data/two_sectors_total_nongen.csv')).forEach(r=>{indTotNon.push(+r[1]);servTotNon.push(+r[2])});
     parseCsv(await fetchCsv('data/two_sectors_share_gen.csv')).forEach(r=>{indShareGen.push(+r[1]);servShareGen.push(+r[2])});
     parseCsv(await fetchCsv('data/two_sectors_share_nongen.csv')).forEach(r=>{indShareNon.push(+r[1]);servShareNon.push(+r[2])});
+    buildSectorBar();
 
-    /* size */
-    parseCsv(await fetchCsv('data/distrib_size.csv')).forEach(r=>{sizeLabels.push(r[0]);sizeAi.push(+r[1]);sizeGen.push(+r[2])});
-
-    /* map rows */
-    parseCsv(await fetchCsv('data/map_offers.csv')).forEach(r=>mapRows.push({zone:r[0],geometry:r[1],ia:r[2],ia_rel:r[3],gen:r[4],gen_rel:r[5]}));
-
-    /* sector evolution */
-    const loadEvol=async(file,store,datesArr)=>{
+    /* SECTOR EVOLUTION */
+    const loadEvol=async(file,target,datesArr)=>{
       const d=Papa.parse(await fetchCsv(file),{header:true,skipEmptyLines:true}).data;
       if(datesArr.length===0)d.forEach(x=>datesArr.push(x.date));
       const keys=Object.keys(d[0]).filter(k=>k!=='date');
-      keys.forEach((k,i)=>store.push({label:k,data:d.map(x=>+x[k]),borderColor:pastel(i),backgroundColor:pastel(i),fill:true,stack:'s'}));
+      keys.forEach((k,i)=>target.push({label:k,data:d.map(x=>+x[k]),borderColor:pastel(i),backgroundColor:pastel(i),fill:true,stack:'s'}))
     };
     await loadEvol('data/sector_evol_ia.csv',evolAI,evolDates);
     await loadEvol('data/sector_evol_iagen.csv',evolGen,evolDatesGen);
-    await loadEvol('data/sector_evol_all.csv',evolAll,evolDates);
+    await loadEvol('data/sector_evol_all.csv',evolAll,[]);
+    buildEvol();
 
-    /* build visuals */
-    buildOffers();buildSectors();buildEvol();buildSize();buildMap();
+    /* SIZE */
+    parseCsv(await fetchCsv('data/distrib_size.csv')).forEach(r=>{sizeLabels.push(r[0]);sizeAi.push(+r[1]);sizeGen.push(+r[2])});
+    buildSize();
+
+    /* MAP */
+    parseCsv(await fetchCsv('data/map_offers.csv')).forEach(r=>mapRows.push({zone:r[0],geometry:r[1],ia:r[2],ia_rel:r[3],gen:r[4],gen_rel:r[5]}));
+    buildMap();
+
   }catch(e){console.error(e)}
 };
 </script>
