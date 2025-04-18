@@ -231,9 +231,9 @@ function buildOffers(){
     type:'bar',
     data:{labels:dateLabels,
       datasets:[
-        {label:'GenAI',data:totalGen,backgroundColor:'rgba(255,99,132,0.7)'},
-        {label:'AI',   data:totalAI, backgroundColor:'rgba(75,192,192,0.7)'},
-        {label:'CV',   data:totalCV, backgroundColor:'rgba(54,162,235,0.7)'}]},
+        {label:'Generative AI',data:totalGen,backgroundColor:'rgba(255,99,132,0.7)'},
+        {label:'General AI',   data:totalAI, backgroundColor:'rgba(75,192,192,0.7)'},
+        {label:'Computer vision',   data:totalCV, backgroundColor:'rgba(54,162,235,0.7)'}]},
     options:{responsive:true,scales:{x:{stacked:true},y:{stacked:true}}}
   });
 }
@@ -279,7 +279,7 @@ function toggleSectorsTotalShare(){
 function toggleSectorsGenNonGen(){
   secCat=secCat==='gen'?'nongen':'gen';
   btnSectorCat.classList.toggle('active',secCat!=='gen');
-  lblSectorCat.textContent=secCat==='gen'?'Gen AI':'Non‑Gen';
+  lblSectorCat.textContent=secCat==='gen'?'Generative AI':'Non generative AI';
   refreshSectors();
 }
 
@@ -315,7 +315,7 @@ function buildSize(){
 function toggleSizeAiGen(){
   sizeCat=sizeCat==='ai'?'gen':'ai';
   btnSizeCat.classList.toggle('active',sizeCat==='gen');
-  lblSizeCat.textContent=sizeCat==='gen'?'Gen AI':'AI';
+  lblSizeCat.textContent=sizeCat==='gen'?'Generative AI':'AI';
   sizeChart.data.datasets[0].data=sizeCat==='ai'?sizeAi:sizeGen;
   sizeChart.update();
 }
@@ -348,7 +348,7 @@ function toggleMapTotalShare(){
 function toggleMapAiGen(){
   mapCat=mapCat==='ai'?'gen':'ai';
   btnMapCat.classList.toggle('active',mapCat==='gen');
-  lblMapCat.textContent=mapCat==='gen'?'Gen AI':'AI';
+  lblMapCat.textContent=mapCat==='gen'?'Generative AI':'AI';
   recolorMap();
 }
 
