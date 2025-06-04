@@ -36,6 +36,9 @@ nav button:hover{background:#eee}
 .additional-figures{max-width:1000px;margin:40px auto}
 .figures-row{display:flex;flex-wrap:wrap;justify-content:center;gap:20px;margin-bottom:40px}
 .key-figure-card{border:1px solid #ccc;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,.1);padding:20px;width:200px;text-align:center;background:#fff}
+/* cards as buttons */
+.key-figure-card.clickable{cursor:pointer;transition:transform .1s}
+.key-figure-card.clickable:hover{transform:translateY(-3px);box-shadow:0 4px 8px rgba(0,0,0,.15)}
 
 /* ==========  DASHBOARDS  ========== */
 #dashboards{margin:0 auto;max-width:1000px}
@@ -95,12 +98,32 @@ nav button:hover{background:#eee}
 
   <div class="additional-figures">
     <div class="figures-row">
-      <div class="key-figure-card"><h4>Total AI Offers</h4><p id="aiOffersValue">…</p><p><small id="aiOffersLastQuarter">…</small></p></div>
-      <div class="key-figure-card"><h4>Total AI Adopters</h4><p id="aiFirmsValue">…</p><p><small id="aiFirmsLastQuarter">…</small></p></div>
+      <!-- Total AI OFFERS -->
+      <div class="key-figure-card clickable" onclick="scrollToSection('totalOffersSection')">
+        <h4>Total AI Offers</h4>
+        <p id="aiOffersValue">…</p>
+        <p><small id="aiOffersLastQuarter">…</small></p>
+      </div>
+      <!-- Total AI ADOPTERS -->
+      <div class="key-figure-card clickable" onclick="scrollToSection('sectorsSection')">
+        <h4>Total AI Adopters</h4>
+        <p id="aiFirmsValue">…</p>
+        <p><small id="aiFirmsLastQuarter">…</small></p>
+      </div>
     </div>
     <div class="figures-row">
-      <div class="key-figure-card"><h4>Total GenAI Offers</h4><p id="genAiOffersValue">…</p><p><small id="genAiOffersLastQuarter">…</small></p></div>
-      <div class="key-figure-card"><h4>Total GenAI Adopters</h4><p id="genAiFirmsValue">…</p><p><small id="genAiFirmsLastQuarter">…</small></p></div>
+      <!-- Total GenAI OFFERS -->
+      <div class="key-figure-card clickable" onclick="scrollToSection('totalOffersSection')">
+        <h4>Total GenAI Offers</h4>
+        <p id="genAiOffersValue">…</p>
+        <p><small id="genAiOffersLastQuarter">…</small></p>
+      </div>
+      <!-- Total GenAI ADOPTERS -->
+      <div class="key-figure-card clickable" onclick="scrollToSection('sectorsSection')">
+        <h4>Total GenAI Adopters</h4>
+        <p id="genAiFirmsValue">…</p>
+        <p><small id="genAiFirmsLastQuarter">…</small></p>
+      </div>
     </div>
   </div>
 </div>
@@ -364,64 +387,4 @@ function recolorMap(){
 function toggleMapTotalShare(){
   mapMode=mapMode==='total'?'share':'total';
   btnMapMode.classList.toggle('active',mapMode==='share');
-  lblMapMode.textContent=mapMode.charAt(0).toUpperCase()+mapMode.slice(1);
-  recolorMap();
-}
-function toggleMapAiGen(){
-  mapCat=mapCat==='ai'?'gen':'ai';
-  btnMapCat.classList.toggle('active',mapCat==='gen');
-  lblMapCat.textContent=mapCat==='gen'?'Generative AI':'AI';
-  recolorMap();
-}
-
-/* ---------- LOAD EVERYTHING ---------- */
-window.onload=async()=>{
-  try{
-    await loadHome();
-
-    /* offers */
-    parseCsv(await fetchCsv('data/offers_total.csv'))
-      .forEach(r=>{dateLabels.push(monthLabel(+r[0]));totalGen.push(+r[1]);totalAI.push(+r[2]);totalCV.push(+r[3])});
-    parseCsv(await fetchCsv('data/offers_share.csv'))
-      .forEach(r=>{shareGen.push(+r[1]);shareAI.push(+r[2]);shareCV.push(+r[3])});
-    buildOffers();
-
-    /* sector bar */
-    parseCsv(await fetchCsv('data/two_sectors_total_gen.csv'))
-      .forEach(r=>{const i=+r[0];if(qLabels.length<=i)qLabels.push(quarterLabel(i));indTotGen.push(+r[1]);servTotGen.push(+r[2])});
-    parseCsv(await fetchCsv('data/two_sectors_total_nongen.csv'))
-      .forEach(r=>{indTotNon.push(+r[1]);servTotNon.push(+r[2])});
-    parseCsv(await fetchCsv('data/two_sectors_share_gen.csv'))
-      .forEach(r=>{indShGen.push(+r[1]);servShGen.push(+r[2])});
-    parseCsv(await fetchCsv('data/two_sectors_share_nongen.csv'))
-      .forEach(r=>{indShNon.push(+r[1]);servShNon.push(+r[2])});
-    buildSectors();
-
-    /* sector evolution (pastel) */
-    const loadEvol=async(file,targetArr,dateArr)=>{
-      const d=Papa.parse(await fetchCsv(file),{header:true,skipEmptyLines:true}).data;
-      if(dateArr.length===0)d.forEach(x=>dateArr.push(x.date));
-      Object.keys(d[0]).filter(k=>k!=='date').forEach((k,i)=>{
-        targetArr.push({label:k,data:d.map(x=>+x[k]),borderColor:pastel(i),backgroundColor:pastel(i),fill:true,stack:'s'});
-      });
-    };
-    await loadEvol('data/sector_evol_ia.csv'   ,evolAI ,evolDates);
-    await loadEvol('data/sector_evol_iagen.csv',evolGen,evolDatesGen);
-    await loadEvol('data/sector_evol_all.csv'  ,evolAll,evolDates);
-    buildEvol();
-
-    /* size */
-    parseCsv(await fetchCsv('data/distrib_size.csv'))
-      .forEach(r=>{sizeLabels.push(r[0]);sizeAi.push(+r[1]);sizeGen.push(+r[2])});
-    buildSize();
-
-    /* map */
-    parseCsv(await fetchCsv('data/map_offers.csv'))
-      .forEach(r=>mapRows.push({zone:r[0],geometry:r[1],ia:r[2],ia_rel:r[3],gen:r[4],gen_rel:r[5]}));
-    buildMap();
-
-  }catch(err){console.error(err)}
-};
-</script>
-</body>
-</html>
+  lblMapMode.textContent=mapMode.charAt(0).toUpperCase()+mapMode.slice
