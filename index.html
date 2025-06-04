@@ -89,14 +89,24 @@ nav button:hover{background:#eee}
 <!-- ==========  HOME  ========== -->
 <div id="accueil" class="page active">
   <h2>Welcome to our AI-tracker!</h2>
-  <p style="text-align:center;">Here you can find insights into the evolution of AI adoption by French firms, based on their recruitment data.</p>
-  <div class="explanation">
-    This tracker is built using machine-learning models on the
-    <a href="https://dares.travail-emploi.gouv.fr/enquete-source/job-offers-collection-and-analysis-system"
-       target="_blank" rel="noopener noreferrer">JOCAS</a>
-    database (DARES). By automatically detecting AI-related job offers, it tracks the diffusion of AI in the French economy.
-  </div>
+  <p class="tagline">A real-time dashboard tracking how artificial intelligence spreads through the French economy.</p>
 
+  <!-- NEW, RICHER INTRODUCTION -->
+  <div class="explanation">
+    <p>The French AI-tracker is an open-access <strong>research project</strong> that monitors, almost in real time, the diffusion of artificial-intelligence technologies within French companies.</p>
+
+    <p>Using machine-learning models to sift through millions of job ads in the <a href="https://dares.travail-emploi.gouv.fr/enquete-source/job-offers-collection-and-analysis-system" target="_blank" rel="noopener noreferrer">JOCAS</a> database (DARES), we detect every vacancy that signals an AI-related role and tag it along four key dimensions:</p>
+
+    <ul style="text-align:left;max-width:800px;margin:10px auto;line-height:1.4em;">
+      <li><strong>Sector</strong> –  Manufacturing vs. services and 15 detailed industries.</li>
+      <li><strong>Firm characteristics</strong> –  Start-ups, SMEs, mid-caps or large groups.</li>
+      <li><strong>AI technology</strong> –  Generative AI, classical machine-learning, computer vision, etc.</li>
+      <li><strong>Geography</strong> –  More than 300 <em>zones d’emploi</em> across mainland France and overseas territories.</li>
+    </ul>
+
+    <p>By updating the figures each quarter (and soon monthly), we provide researchers, journalists, policymakers and citizens with a transparent window onto <em>where</em>, <em>how fast</em> and in <em>which form</em> AI is reshaping the labour market.</p>
+  </div>
+  
   <div class="additional-figures">
     <div class="figures-row">
       <div class="key-figure-card clickable" onclick="scrollToSection('totalOffersSection')">
