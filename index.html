@@ -28,7 +28,12 @@ header{background:#f2f2f2;padding:10px}
 nav{display:flex;justify-content:center;gap:20px;margin-top:10px}
 nav button{padding:10px 20px;background:#fff;border:1px solid #ccc;border-radius:4px;cursor:pointer}
 nav button:hover{background:#eee}
-.page{display:none;padding:20px}.active{display:block}
+.page{display:none;padding:20px}
+.page.active{display:block}
+
+/* clickable cards */
+.key-figure-card.clickable{cursor:pointer;transition:transform .15s,box-shadow .15s}
+.key-figure-card.clickable:hover{transform:translateY(-3px);box-shadow:0 4px 8px rgba(0,0,0,.15)}
 
 /* ==========  HOME  ========== */
 #accueil h2{text-align:center;margin-top:30px}
@@ -36,9 +41,6 @@ nav button:hover{background:#eee}
 .additional-figures{max-width:1000px;margin:40px auto}
 .figures-row{display:flex;flex-wrap:wrap;justify-content:center;gap:20px;margin-bottom:40px}
 .key-figure-card{border:1px solid #ccc;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,.1);padding:20px;width:200px;text-align:center;background:#fff}
-/* cards as buttons */
-.key-figure-card.clickable{cursor:pointer;transition:transform .1s}
-.key-figure-card.clickable:hover{transform:translateY(-3px);box-shadow:0 4px 8px rgba(0,0,0,.15)}
 
 /* ==========  DASHBOARDS  ========== */
 #dashboards{margin:0 auto;max-width:1000px}
@@ -58,7 +60,7 @@ nav button:hover{background:#eee}
 .toggle-label{margin-left:8px;font-size:14px;font-weight:bold}
 .chart-controls{display:flex;justify-content:center;align-items:center;gap:15px;margin:10px 0}
 
-/* tri‑toggle */
+/* tri-toggle */
 .tri-toggle .evol-btn{border:1px solid #ccc;border-right:none;padding:7px 18px;background:#f6f6f6;font-weight:bold;cursor:pointer}
 .tri-toggle .evol-btn:last-child{border-right:1px solid #ccc}
 .tri-toggle .evol-btn.active{background:#7fbf7f;color:#fff}
@@ -73,8 +75,8 @@ nav button:hover{background:#eee}
 
 <header>
   <div class="header-top">
-    <div class="left-block"><img src="logo.png" alt="AI‑tracker logo" class="logo"></div>
-    <div class="center-block"><h1>The French AI‑tracker</h1></div>
+    <div class="left-block"><img src="logo.png" alt="AI-tracker logo" class="logo"></div>
+    <div class="center-block"><h1>The French AI-tracker</h1></div>
     <div class="right-block"></div>
   </div>
   <nav>
@@ -86,25 +88,22 @@ nav button:hover{background:#eee}
 
 <!-- ==========  HOME  ========== -->
 <div id="accueil" class="page active">
-  <h2>Welcome to our AI‑tracker!</h2>
+  <h2>Welcome to our AI-tracker!</h2>
   <p style="text-align:center;">Here you can find insights into the evolution of AI adoption by French firms, based on their recruitment data.</p>
   <div class="explanation">
-    This tracker is built using machine‑learning models on the <a href="https://dares.travail-emploi.gouv.fr/enquete-source/job-offers-collection-and-analysis-system"
-   target="_blank" 
-   rel="noopener noreferrer">
-  JOCAS
-</a>  database (DARES). By automatically detecting AI‑related job offers, it tracks the diffusion of AI in the French economy.
+    This tracker is built using machine-learning models on the
+    <a href="https://dares.travail-emploi.gouv.fr/enquete-source/job-offers-collection-and-analysis-system"
+       target="_blank" rel="noopener noreferrer">JOCAS</a>
+    database (DARES). By automatically detecting AI-related job offers, it tracks the diffusion of AI in the French economy.
   </div>
 
   <div class="additional-figures">
     <div class="figures-row">
-      <!-- Total AI OFFERS -->
       <div class="key-figure-card clickable" onclick="scrollToSection('totalOffersSection')">
         <h4>Total AI Offers</h4>
         <p id="aiOffersValue">…</p>
         <p><small id="aiOffersLastQuarter">…</small></p>
       </div>
-      <!-- Total AI ADOPTERS -->
       <div class="key-figure-card clickable" onclick="scrollToSection('sectorsSection')">
         <h4>Total AI Adopters</h4>
         <p id="aiFirmsValue">…</p>
@@ -112,13 +111,11 @@ nav button:hover{background:#eee}
       </div>
     </div>
     <div class="figures-row">
-      <!-- Total GenAI OFFERS -->
       <div class="key-figure-card clickable" onclick="scrollToSection('totalOffersSection')">
         <h4>Total GenAI Offers</h4>
         <p id="genAiOffersValue">…</p>
         <p><small id="genAiOffersLastQuarter">…</small></p>
       </div>
-      <!-- Total GenAI ADOPTERS -->
       <div class="key-figure-card clickable" onclick="scrollToSection('sectorsSection')">
         <h4>Total GenAI Adopters</h4>
         <p id="genAiFirmsValue">…</p>
@@ -132,20 +129,20 @@ nav button:hover{background:#eee}
 <div id="dashboards" class="page">
   <h2>Dashboards</h2>
   <p class="dashboard-intro">
-    All statistics and visualisations on this page are produced from the JOCAS job‑posting database using advanced
-    machine‑learning methods to detect and classify AI‑related vacancies.
+    All statistics and visualisations on this page are produced from the JOCAS job-posting database using advanced
+    machine-learning methods to detect and classify AI-related vacancies.
   </p>
 
   <div class="sub-nav">
     <button onclick="scrollToSection('totalOffersSection')">Total Offers</button>
     <button onclick="scrollToSection('sectorsSection')">Sectors</button>
-    <button onclick="scrollToSection('sizeSection')">Firm‑size</button>
+    <button onclick="scrollToSection('sizeSection')">Firm-size</button>
     <button onclick="scrollToSection('mapOffersSection')">Map</button>
   </div>
 
   <!-- TOTAL OFFERS -->
   <div id="totalOffersSection" class="chart-section">
-    <h3>Evolution of AI‑Related Job Offers</h3>
+    <h3>Evolution of AI-Related Job Offers</h3>
     <div class="chart-controls">
       <button id="btnOfferMode" class="toggle-btn" onclick="toggleTotalShare()"><span class="slider"></span></button>
       <span class="toggle-label" id="lblOfferMode">Total</span>
@@ -160,7 +157,7 @@ nav button:hover{background:#eee}
       <button id="btnSectorMode" class="toggle-btn" onclick="toggleSectorsTotalShare()"><span class="slider"></span></button>
       <span class="toggle-label" id="lblSectorMode">Total</span>
       <button id="btnSectorCat" class="toggle-btn" onclick="toggleSectorsGenNonGen()"><span class="slider"></span></button>
-      <span class="toggle-label" id="lblSectorCat">Gen AI</span>
+      <span class="toggle-label" id="lblSectorCat">Gen AI</span>
     </div>
     <div class="chart-container"><canvas id="sectorsChart"></canvas></div>
 
@@ -176,7 +173,7 @@ nav button:hover{background:#eee}
 
   <!-- SIZE -->
   <div id="sizeSection" class="chart-section">
-    <h3>Distribution of AI Adopters by Firm Size</h3>
+    <h3>Distribution of AI Adopters by Firm Size</h3>
     <div class="chart-controls">
       <button id="btnSizeCat" class="toggle-btn" onclick="toggleSizeAiGen()"><span class="slider"></span></button>
       <span class="toggle-label" id="lblSizeCat">AI</span>
@@ -186,7 +183,7 @@ nav button:hover{background:#eee}
 
   <!-- MAP -->
   <div id="mapOffersSection" class="chart-section">
-    <h3>Map of French Zones d’Emplois</h3>
+    <h3>Map of French Zones d’Emplois</h3>
     <div class="chart-controls">
       <button id="btnMapMode" class="toggle-btn" onclick="toggleMapTotalShare()"><span class="slider"></span></button>
       <span class="toggle-label" id="lblMapMode">Total</span>
@@ -202,34 +199,23 @@ nav button:hover{background:#eee}
   <h2>Projects</h2>
   <section class="authors">
     <h3>Authors</h3>
-    <p>This AI‑tracker is an ongoing work developed by :</p>
+    <p>This AI-tracker is an ongoing work developed by :</p>
     <ul>
       <li>
-        <strong>
-          <a href="https://www.linkedin.com/in/paul-delbouve-180b19268/" target="_blank" rel="noopener noreferrer">
-            Paul Delbouve
-          </a>
-        </strong> — Collège de France, PSE, DGE&nbsp;(Ministère de l’Économie et des Finances)
+        <strong><a href="https://www.linkedin.com/in/paul-delbouve-180b19268/" target="_blank" rel="noopener noreferrer">Paul Delbouve</a></strong> — Collège de France, PSE, DGE (Ministère de l’Économie et des Finances)
       </li>
       <li>
-        <strong>
-          <a href="https://www.insead.edu/faculty/philippe-aghion" target="_blank" rel="noopener noreferrer">
-            Philippe Aghion
-          </a>
-        </strong> — Collège de France, INSEAD, LSE, CEPR
+        <strong><a href="https://www.insead.edu/faculty/philippe-aghion" target="_blank" rel="noopener noreferrer">Philippe Aghion</a></strong> — Collège de France, INSEAD, LSE, CEPR
       </li>
       <li>
-        <strong>
-          <a href="https://sites.google.com/site/abergeaudeco" target="_blank" rel="noopener noreferrer">
-            Antonin Bergeaud
-          </a>
-        </strong> — HEC Paris, LSE, CEPR
+        <strong><a href="https://sites.google.com/site/abergeaudeco" target="_blank" rel="noopener noreferrer">Antonin Bergeaud</a></strong> — HEC Paris, LSE, CEPR
       </li>
     </ul>
   </section>
+
   <section class="papers">
     <h3>Academic Papers</h3>
-    <p><strong>Diffusion de l'Intelligence Artificielle en France</strong> Aghion, P., Bergeaud, A.& Delbouve, P. (2025) Economie et Statistique/Economics and Statistics (to be published)</p>
+    <p><strong>Diffusion de l'Intelligence Artificielle en France</strong> Aghion, P., Bergeaud, A. & Delbouve, P. (2025) <em>Economie et Statistique/Economics and Statistics</em> (forthcoming)</p>
   </section>
 </div>
 
@@ -241,7 +227,13 @@ function showPage(id){
   document.getElementById(id).classList.add('active');
   if(id==='dashboards' && window.map) setTimeout(()=>map.invalidateSize(),100);
 }
-function scrollToSection(id){const el=document.getElementById(id);if(el){showPage('dashboards');el.scrollIntoView({behavior:'smooth'})}}
+function scrollToSection(id){
+  const el=document.getElementById(id);
+  if(el){
+    showPage('dashboards');
+    el.scrollIntoView({behavior:'smooth'});
+  }
+}
 const fetchCsv=url=>fetch(url).then(r=>{if(!r.ok)throw url;return r.text()});
 const parseCsv=txt=>Papa.parse(txt,{header:false,skipEmptyLines:true}).data.slice(1);
 const monthLabel=i=>`${2019+Math.floor(i/12)}-${String((i%12)+1).padStart(2,'0')}`;
@@ -250,16 +242,20 @@ const pastel=i=>`hsl(${(i*40)%360},45%,72%)`;
 
 /* ---------- home figures ---------- */
 async function loadHome(){
-  const d=parseCsv(await fetchCsv('data/general_results.csv'))
-          .reduce((h,r)=>(h[r[0]]=+r[1]||0,h),{});
-  aiOffersValue.textContent=d["Total IA offers"]||0;
-  aiOffersLastQuarter.textContent=`+${d["Number of AI offers in last quarter"]||0} offers last quarter`;
-  aiFirmsValue.textContent=d["Number of firms with AI offers"]||0;
-  aiFirmsLastQuarter.textContent=`+${d["Number of new AI adopters in last quarter"]||0} new firms last quarter`;
-  genAiOffersValue.textContent=d["Total IA générative offers"]||0;
-  genAiOffersLastQuarter.textContent=`+${d["Number of GenAI offers in last quarter"]||0} offers last quarter`;
-  genAiFirmsValue.textContent=d["Number of firms with GenAI offers"]||0;
-  genAiFirmsLastQuarter.textContent=`+${d["Number of new GenAI adopters in last quarter"]||0} new firms last quarter`;
+  try{
+    const d=parseCsv(await fetchCsv('data/general_results.csv'))
+            .reduce((h,r)=>(h[r[0]]=+r[1]||0,h),{});
+    aiOffersValue.textContent=d['Total IA offers']||0;
+    aiOffersLastQuarter.textContent=`+${d['Number of AI offers in last quarter']||0} offers last quarter`;
+    aiFirmsValue.textContent=d['Number of firms with AI offers']||0;
+    aiFirmsLastQuarter.textContent=`+${d['Number of new AI adopters in last quarter']||0} new firms last quarter`;
+    genAiOffersValue.textContent=d['Total IA générative offers']||0;
+    genAiOffersLastQuarter.textContent=`+${d['Number of GenAI offers in last quarter']||0} offers last quarter`;
+    genAiFirmsValue.textContent=d['Number of firms with GenAI offers']||0;
+    genAiFirmsLastQuarter.textContent=`+${d['Number of new GenAI adopters in last quarter']||0} new firms last quarter`;
+  }catch(e){
+    console.error('Error loading home figures:',e);
+  }
 }
 
 /* ---------- data holders ---------- */
@@ -278,7 +274,7 @@ function buildOffers(){
       datasets:[
         {label:'Generative AI',data:totalGen,backgroundColor:'rgba(255,99,132,0.7)'},
         {label:'General AI',   data:totalAI, backgroundColor:'rgba(75,192,192,0.7)'},
-        {label:'Computer vision',   data:totalCV, backgroundColor:'rgba(54,162,235,0.7)'}]},
+        {label:'Computer vision',data:totalCV,backgroundColor:'rgba(54,162,235,0.7)'}]},
     options:{responsive:true,scales:{x:{stacked:true},y:{stacked:true}}}
   });
 }
@@ -324,11 +320,11 @@ function toggleSectorsTotalShare(){
 function toggleSectorsGenNonGen(){
   secCat=secCat==='gen'?'nongen':'gen';
   btnSectorCat.classList.toggle('active',secCat!=='gen');
-  lblSectorCat.textContent=secCat==='gen'?'Generative AI':'Non generative AI';
+  lblSectorCat.textContent=secCat==='gen'?'Generative AI':'Non generative AI';
   refreshSectors();
 }
 
-/* ---------- SECTOR EVOLUTION (pastel) ---------- */
+/* ---------- SECTOR EVOLUTION ---------- */
 let evolChart,evolType='ai';
 function buildEvol(){
   evolChart=new Chart(document.getElementById('sectorEvolChart'),{
@@ -344,7 +340,7 @@ function setEvolType(t){
   btnAll.classList.toggle('active',t==='all');
   if(t==='ai'){evolChart.data.labels=evolDates;evolChart.data.datasets=evolAI}
   else if(t==='gen'){evolChart.data.labels=evolDatesGen;evolChart.data.datasets=evolGen}
-  else             {evolChart.data.labels=evolDates;evolChart.data.datasets=evolAll}
+  else{evolChart.data.labels=evolDates;evolChart.data.datasets=evolAll}
   evolChart.update();
 }
 
@@ -360,7 +356,7 @@ function buildSize(){
 function toggleSizeAiGen(){
   sizeCat=sizeCat==='ai'?'gen':'ai';
   btnSizeCat.classList.toggle('active',sizeCat==='gen');
-  lblSizeCat.textContent=sizeCat==='gen'?'Generative AI':'AI';
+  lblSizeCat.textContent=sizeCat==='gen'?'Generative AI':'AI';
   sizeChart.data.datasets[0].data=sizeCat==='ai'?sizeAi:sizeGen;
   sizeChart.update();
 }
@@ -387,4 +383,67 @@ function recolorMap(){
 function toggleMapTotalShare(){
   mapMode=mapMode==='total'?'share':'total';
   btnMapMode.classList.toggle('active',mapMode==='share');
-  lblMapMode.textContent=mapMode.charAt(0).toUpperCase()+mapMode.slice
+  lblMapMode.textContent=mapMode.charAt(0).toUpperCase()+mapMode.slice(1);
+  recolorMap();
+}
+function toggleMapAiGen(){
+  mapCat=mapCat==='ai'?'gen':'ai';
+  btnMapCat.classList.toggle('active',mapCat==='gen');
+  lblMapCat.textContent=mapCat==='gen'?'Generative AI':'AI';
+  recolorMap();
+}
+
+/* ---------- LOAD EVERYTHING ---------- */
+window.onload=async()=>{
+  showPage('accueil'); // ensure the home page is visible on load
+  await loadHome();
+
+  try{
+    /* offers */
+    parseCsv(await fetchCsv('data/offers_total.csv'))
+      .forEach(r=>{dateLabels.push(monthLabel(+r[0]));totalGen.push(+r[1]);totalAI.push(+r[2]);totalCV.push(+r[3])});
+    parseCsv(await fetchCsv('data/offers_share.csv'))
+      .forEach(r=>{shareGen.push(+r[1]);shareAI.push(+r[2]);shareCV.push(+r[3])});
+    buildOffers();
+
+    /* sector bar */
+    parseCsv(await fetchCsv('data/two_sectors_total_gen.csv'))
+      .forEach(r=>{const i=+r[0];if(qLabels.length<=i)qLabels.push(quarterLabel(i));indTotGen.push(+r[1]);servTotGen.push(+r[2])});
+    parseCsv(await fetchCsv('data/two_sectors_total_nongen.csv'))
+      .forEach(r=>{indTotNon.push(+r[1]);servTotNon.push(+r[2])});
+    parseCsv(await fetchCsv('data/two_sectors_share_gen.csv'))
+      .forEach(r=>{indShGen.push(+r[1]);servShGen.push(+r[2])});
+    parseCsv(await fetchCsv('data/two_sectors_share_nongen.csv'))
+      .forEach(r=>{indShNon.push(+r[1]);servShNon.push(+r[2])});
+    buildSectors();
+
+    /* sector evolution */
+    const loadEvol=async(file,targetArr,dateArr)=>{
+      const d=Papa.parse(await fetchCsv(file),{header:true,skipEmptyLines:true}).data;
+      if(dateArr.length===0)d.forEach(x=>dateArr.push(x.date));
+      Object.keys(d[0]).filter(k=>k!=='date').forEach((k,i)=>{
+        targetArr.push({label:k,data:d.map(x=>+x[k]),borderColor:pastel(i),backgroundColor:pastel(i),fill:true,stack:'s'});
+      });
+    };
+    await loadEvol('data/sector_evol_ia.csv'   ,evolAI ,evolDates);
+    await loadEvol('data/sector_evol_iagen.csv',evolGen,evolDatesGen);
+    await loadEvol('data/sector_evol_all.csv'  ,evolAll,evolDates);
+    buildEvol();
+
+    /* size */
+    parseCsv(await fetchCsv('data/distrib_size.csv'))
+      .forEach(r=>{sizeLabels.push(r[0]);sizeAi.push(+r[1]);sizeGen.push(+r[2])});
+    buildSize();
+
+    /* map */
+    parseCsv(await fetchCsv('data/map_offers.csv'))
+      .forEach(r=>mapRows.push({zone:r[0],geometry:r[1],ia:r[2],ia_rel:r[3],gen:r[4],gen_rel:r[5]}));
+    buildMap();
+
+  }catch(err){
+    console.error('Error during dashboard load:',err);
+  }
+};
+</script>
+</body>
+</html>
