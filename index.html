@@ -8,7 +8,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <!-- PapaParse -->
@@ -52,9 +53,9 @@
   .sub-nav button{margin:5px;background:#fff;border:1px solid #ccc;border-radius:4px;cursor:pointer}
   .chart-section{margin-bottom:40px}
   .chart-container{max-width:1800px;margin:0 auto}
-  #sizeSection .chart-container{max-width:400px;height:400px;margin:0 auto}
-  #mapOffersSection .map-container{width:600px;height:600px;margin:0 auto}
+  #sizeSection   .chart-container{max-width:400px;height:400px;margin:0 auto}
   #metierSection .chart-container{max-width:1000px;height:900px;margin:0 auto}
+  #mapOffersSection .map-container{width:600px;height:600px;margin:0 auto}
 
   /* toggle switch */
   .toggle-btn{position:relative;display:inline-block;width:90px;height:30px;border:none;border-radius:15px;background:#ccc;cursor:pointer}
@@ -88,6 +89,7 @@
     <button onclick="showPage('projects')">About</button>
   </nav>
 </header>
+
 
 <!-- ==========  HOME  ========== -->
 <div id="accueil" class="page active">
@@ -131,7 +133,7 @@
     </div>
   </div>
 </div>
-
+  
 <!-- ==========  DASHBOARDS  ========== -->
 <div id="dashboards" class="page">
   <h2>Dashboards</h2>
@@ -144,9 +146,10 @@
     <button onclick="scrollToSection('totalOffersSection')">Total Offers</button>
     <button onclick="scrollToSection('sectorsSection')">Sectors</button>
     <button onclick="scrollToSection('sizeSection')">Firm-size</button>
-    <button onclick="scrollToSection('mapOffersSection')">Map</button>
     <button onclick="scrollToSection('metierSection')">Métiers</button>
+    <button onclick="scrollToSection('mapOffersSection')">Map</button>
   </div>
+
 
   <!-- TOTAL OFFERS -->
   <div id="totalOffersSection" class="chart-section">
@@ -188,6 +191,22 @@
     <div class="chart-container"><canvas id="sizeChart"></canvas></div>
   </div>
 
+
+ <!-- MÉTIERS (now above the map) -->
+  <div id="metierSection" class="chart-section">
+    <h3>AI Offers by Métiers (ROME)</h3>
+    <div class="chart-controls">
+      <button id="btnMetierCat" class="toggle-btn" onclick="toggleMetier()">
+        <span class="slider"></span>
+      </button>
+      <span class="toggle-label" id="lblMetierCat">IA</span>
+    </div>
+    <div class="chart-container">
+      <canvas id="metierChart"></canvas>
+    </div>
+  </div>
+
+  
   <!-- MAP -->
   <div id="mapOffersSection" class="chart-section">
     <h3>Map of French Zones d’Emplois</h3>
@@ -200,16 +219,7 @@
     <div class="map-container" id="mapOffers"></div>
   </div>
 
-  <!-- MÉTIERS -->
-  <div id="metierSection" class="chart-section">
-    <h3>AI Offers by Métiers (ROME)</h3>
-    <div class="chart-controls">
-      <button id="btnMetierCat" class="toggle-btn" onclick="toggleMetier()"><span class="slider"></span></button>
-      <span class="toggle-label" id="lblMetierCat">IA</span>
-    </div>
-    <div class="chart-container"><canvas id="metierChart"></canvas></div>
-  </div>
-</div>
+
 
 <!-- ==========  PROJECTS  ========== -->
 <div id="projects" class="page">
@@ -236,7 +246,7 @@
 
 <!-- ==========  SCRIPTS  ========== -->
 <script>
-/* ---------- helpers ---------- */
+* ---------- helpers ---------- */
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -244,10 +254,7 @@ function showPage(id){
 }
 function scrollToSection(id){
   const el=document.getElementById(id);
-  if(el){
-    showPage('dashboards');
-    el.scrollIntoView({behavior:'smooth'});
-  }
+  if(el){showPage('dashboards');el.scrollIntoView({behavior:'smooth'});}
 }
 const fetchCsv=url=>fetch(url).then(r=>{if(!r.ok)throw url;return r.text()});
 const parseCsv=txt=>Papa.parse(txt,{header:false,skipEmptyLines:true}).data.slice(1);
@@ -255,20 +262,15 @@ const monthLabel=i=>`${2019+Math.floor(i/12)}-${String((i%12)+1).padStart(2,'0')
 const quarterLabel=i=>`Q${(i%4)+1} ${2019+Math.floor(i/4)}`;
 const pastel=i=>`hsl(${(i*40)%360},45%,72%)`;
 
-/* ---------- home figures ---------- */
-async function loadHome(){
-  try{
-    const d=parseCsv(await fetchCsv('data/general_results.csv')).reduce((h,r)=>(h[r[0]]=+r[1]||0,h),{});
-    aiOffersValue.textContent=d['Total IA offers']||0;
-    aiOffersLastQuarter.textContent=`+${d['Number of AI offers in last quarter']||0} offers last quarter`;
-    aiFirmsValue.textContent=d['Number of firms with AI offers']||0;
-    aiFirmsLastQuarter.textContent=`+${d['Number of new AI adopters in last quarter']||0} new firms last quarter`;
-    genAiOffersValue.textContent=d['Total IA générative offers']||0;
-    genAiOffersLastQuarter.textContent=`+${d['Number of GenAI offers in last quarter']||0} offers last quarter`;
-    genAiFirmsValue.textContent=d['Number of firms with GenAI offers']||0;
-    genAiFirmsLastQuarter.textContent=`+${d['Number of new GenAI adopters in last quarter']||0} new firms last quarter`;
-  }catch(e){console.error('Error loading home figures:',e);}
-}
+/* ---------- custom palette for Métiers ---------- */
+const metierPalette=[
+  'rgba(220,  38,127,0.40)',  /* fuchsia */
+  'rgba( 14, 165,233,0.40)',  /* sky blue */
+  'rgba(251,191, 36,0.40)',   /* amber    */
+  'rgba( 34,197, 94,0.40)',   /* emerald  */
+  'rgba(168, 85,247,0.40)',   /* violet   */
+  'rgba(244,114,182,0.40)'    /* pink     */
+];
 
 /* ---------- data holders ---------- */
 let dateLabels=[],totalGen=[],totalAI=[],totalCV=[],shareGen=[],shareAI=[],shareCV=[];
@@ -276,9 +278,8 @@ let qLabels=[],indTotGen=[],servTotGen=[],indTotNon=[],servTotNon=[],indShGen=[]
 let sizeLabels=[],sizeAi=[],sizeGen=[];
 let mapRows=[];
 let evolDates=[],evolDatesGen=[],evolAI=[],evolGen=[],evolAll=[];
-/* ---------- MÉTIERS data holders ---------- */
+/* Métiers */
 let metierDates=[],metierDatesData=[],metierIA=[],metierData=[];
-
 /* ---------- OFFERS chart ---------- */
 let offersChart,offersMode='total';
 function buildOffers(){
@@ -407,29 +408,26 @@ function toggleMapAiGen(){
   recolorMap();
 }
 
-/* ---------- MÉTIERS AREA ---------- */
+/* ---------- MÉTIERS AREA CHART ---------- */
 let metierChart,metierMode='ia';
 function buildMetier(){
   metierChart=new Chart(document.getElementById('metierChart'),{
     type:'line',
     data:{labels:metierDates,datasets:metierIA},
-    options:{responsive:true,
-             scales:{y:{stacked:true}},
-             maintainAspectRatio: false,
-             elements:{line:{fill:true,tension:.3}}}
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,   // allow the 900-px height
+      scales:{y:{stacked:true}},
+      elements:{line:{fill:true,tension:.3}}
+    }
   });
 }
 function toggleMetier(){
-  metierMode=metierMode==='ia'?'data':'ia';
+  metierMode = (metierMode==='ia') ? 'data' : 'ia';
   btnMetierCat.classList.toggle('active',metierMode==='data');
-  lblMetierCat.textContent=metierMode==='data'?'Data/IA':'IA';
-  if(metierMode==='ia'){
-    metierChart.data.labels=metierDates;
-    metierChart.data.datasets=metierIA;
-  }else{
-    metierChart.data.labels=metierDatesData;
-    metierChart.data.datasets=metierData;
-  }
+  lblMetierCat.textContent = (metierMode==='data') ? 'Data/IA' : 'IA';
+  metierChart.data.labels   = (metierMode==='ia') ? metierDates    : metierDatesData;
+  metierChart.data.datasets = (metierMode==='ia') ? metierIA       : metierData;
   metierChart.update();
 }
 
@@ -472,20 +470,30 @@ window.onload=async()=>{
     parseCsv(await fetchCsv('data/map_offers.csv')).forEach(r=>mapRows.push({zone:r[0],geometry:r[1],ia:r[2],ia_rel:r[3],gen:r[4],gen_rel:r[5]}));
     buildMap();
 
-    /* métiers stacked area */
-    const loadMetier=async(file,targetArr,dateArr)=>{
-      const d=Papa.parse(await fetchCsv(file),{header:true,skipEmptyLines:true}).data;
-      if(dateArr.length===0)d.forEach(x=>dateArr.push(x.date));
-      Object.keys(d[0]).filter(k=>k!=='date').forEach((k,i)=>{
-        targetArr.push({label:k,data:d.map(x=>+x[k]),borderColor:pastel(i),backgroundColor:pastel(i),fill:true,stack:'s'});
-      });
-    };
-    await loadMetier('data/metier_area_ia.csv',   metierIA,   metierDates);
-    await loadMetier('data/metier_area_data.csv', metierData, metierDatesData);
-    buildMetier();
+ /* --- MÉTIERS stacked area --- */
+  const loadMetier = async (file,targetArr,dateArr) => {
+    const d = Papa.parse(await fetchCsv(file),{header:true,skipEmptyLines:true}).data;
+    if(dateArr.length===0) d.forEach(x=>dateArr.push(x.date));
 
-  }catch(err){console.error('Error during dashboard load:',err);}
+    Object.keys(d[0]).filter(k=>k!=='date').forEach((k,i)=>{
+      const fill   = metierPalette[i % metierPalette.length];
+      const stroke = fill.replace(/0\.40\)/,'1)');
+      targetArr.push({
+        label:k,
+        data:d.map(x=>+x[k]),
+        borderColor:stroke,
+        backgroundColor:fill,
+        fill:true,
+        stack:'s'
+      });
+    });
+  };
+
+  await loadMetier('data/metier_area_ia.csv'  ,metierIA  ,metierDates);
+  await loadMetier('data/metier_area_data.csv',metierData,metierDatesData);
+  buildMetier();
 };
+  
 </script>
 </body>
 </html>
