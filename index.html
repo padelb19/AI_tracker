@@ -245,9 +245,8 @@
 </div>
 
 <!-- ==========  SCRIPTS  ========== -->
-  
 <script>
-/* ---------- helpers ---------- */ 
+/* ---------- helpers ---------- */
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -493,7 +492,7 @@ window.onload=async()=>{
   await loadMetier('data/metier_area_ia.csv'  ,metierIA  ,metierDates);
   await loadMetier('data/metier_area_data.csv',metierData,metierDatesData);
   buildMetier();
-} catch(err) {                                 <!-- FIX #2 -->
+} catch(err) {
     console.error('Error during dashboard load:', err);
   }
 };  
