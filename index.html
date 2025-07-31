@@ -54,7 +54,7 @@
   .chart-container{max-width:1800px;margin:0 auto}
   #sizeSection .chart-container{max-width:400px;height:400px;margin:0 auto}
   #mapOffersSection .map-container{width:600px;height:600px;margin:0 auto}
-  #metierSection .chart-container{max-width:1500px;height:1500px;margin:0 auto}
+  #metierSection .chart-container{max-width:1000px;height:1500px;margin:0 auto}
 
   /* toggle switch */
   .toggle-btn{position:relative;display:inline-block;width:90px;height:30px;border:none;border-radius:15px;background:#ccc;cursor:pointer}
@@ -413,7 +413,10 @@ function buildMetier(){
   metierChart=new Chart(document.getElementById('metierChart'),{
     type:'line',
     data:{labels:metierDates,datasets:metierIA},
-    options:{responsive:true,scales:{y:{stacked:true}},elements:{line:{fill:true,tension:.3}}}
+    options:{responsive:true,
+             scales:{y:{stacked:true}},
+             maintainAspectRatio: false,
+             elements:{line:{fill:true,tension:.3}}}
   });
 }
 function toggleMetier(){
