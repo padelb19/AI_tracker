@@ -245,8 +245,9 @@
 </div>
 
 <!-- ==========  SCRIPTS  ========== -->
+  
 <script>
-* ---------- helpers ---------- */
+/* ---------- helpers ---------- */ 
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -470,7 +471,7 @@ window.onload=async()=>{
     parseCsv(await fetchCsv('data/map_offers.csv')).forEach(r=>mapRows.push({zone:r[0],geometry:r[1],ia:r[2],ia_rel:r[3],gen:r[4],gen_rel:r[5]}));
     buildMap();
 
- /* --- MÉTIERS stacked area --- */
+/* --- MÉTIERS stacked area --- */
   const loadMetier = async (file,targetArr,dateArr) => {
     const d = Papa.parse(await fetchCsv(file),{header:true,skipEmptyLines:true}).data;
     if(dateArr.length===0) d.forEach(x=>dateArr.push(x.date));
@@ -492,8 +493,10 @@ window.onload=async()=>{
   await loadMetier('data/metier_area_ia.csv'  ,metierIA  ,metierDates);
   await loadMetier('data/metier_area_data.csv',metierData,metierDatesData);
   buildMetier();
-};
-  
+} catch(err) {                                 <!-- FIX #2 -->
+    console.error('Error during dashboard load:', err);
+  }
+};  
 </script>
 </body>
 </html>
