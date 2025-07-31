@@ -256,6 +256,27 @@ function scrollToSection(id){
   const el=document.getElementById(id);
   if(el){showPage('dashboards');el.scrollIntoView({behavior:'smooth'});}
 }
+
+/* ---------- load figures for the Home page (THIS was missing) ---------- */
+async function loadHome(){
+  try{
+    const rows = parseCsv(await fetchCsv('data/general_results.csv'));
+    const d    = rows.reduce((h,r)=>(h[r[0]]=+r[1]||0, h),{});
+
+    aiOffersValue.textContent        = d['Total IA offers']                    ?? '0';
+    aiOffersLastQuarter.textContent  = `+${d['Number of AI offers in last quarter']   ?? 0} offers last quarter`;
+    aiFirmsValue.textContent         = d['Number of firms with AI offers']     ?? '0';
+    aiFirmsLastQuarter.textContent   = `+${d['Number of new AI adopters in last quarter'] ?? 0} new firms last quarter`;
+
+    genAiOffersValue.textContent     = d['Total IA générative offers']         ?? '0';
+    genAiOffersLastQuarter.textContent=`+${d['Number of GenAI offers in last quarter'] ?? 0} offers last quarter`;
+    genAiFirmsValue.textContent      = d['Number of firms with GenAI offers']  ?? '0';
+    genAiFirmsLastQuarter.textContent=`+${d['Number of new GenAI adopters in last quarter'] ?? 0} new firms last quarter`;
+  }catch(e){
+    console.error('Error loading home figures:', e);
+  }
+}
+  
 const fetchCsv=url=>fetch(url).then(r=>{if(!r.ok)throw url;return r.text()});
 const parseCsv=txt=>Papa.parse(txt,{header:false,skipEmptyLines:true}).data.slice(1);
 const monthLabel=i=>`${2019+Math.floor(i/12)}-${String((i%12)+1).padStart(2,'0')}`;
