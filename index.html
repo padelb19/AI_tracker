@@ -487,8 +487,9 @@ function buildSkills(){
     options:{
       responsive:true,
       maintainAspectRatio:false,
-      scales:{ y:{ stacked:true } },
-      elements:{ line:{ fill:true, tension:.3 } },
+      interaction:{mode:'nearest', intersect:false},
+      scales:{ y:{ stacked:false } },              // ⟵ no stacking
+      elements:{ line:{ fill:false, tension:.25 } },// ⟵ no area fill
       plugins:{ legend:{ position:'bottom' } }
     }
   });
@@ -513,11 +514,12 @@ async function loadSkills(file, key){
     label: k,
     data: d.map(x=>+x[k]),
     borderColor: pastel(i),
-    backgroundColor: pastel(i),
-    fill: true,
-    stack: 'skills'
+    pointRadius: 0,
+    fill: false                   // ⟵ lines only
+    // (remove: stack:'skills', backgroundColor if you want)
   }));
 }
+
 
 /* ---------- LOAD EVERYTHING ---------- */
 window.onload=async()=>{
@@ -596,4 +598,5 @@ window.onload=async()=>{
 </script>
 </body>
 </html>
+
 
