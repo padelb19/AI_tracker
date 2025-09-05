@@ -8,8 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- Leaflet -->
-  <link rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <!-- PapaParse -->
@@ -87,11 +86,9 @@
   <nav>
     <button onclick="showPage('accueil')">Accueil</button>
     <button onclick="showPage('dashboards')">Dashboards</button>
-    <!-- NEW: quick jump to Skills dashboard -->
     <button onclick="showPage('projects')">About</button>
   </nav>
 </header>
-
 
 <!-- ==========  HOME  ========== -->
 <div id="accueil" class="page active">
@@ -135,7 +132,7 @@
     </div>
   </div>
 </div>
-  
+
 <!-- ==========  DASHBOARDS  ========== -->
 <div id="dashboards" class="page">
   <h2>Dashboards</h2>
@@ -149,11 +146,9 @@
     <button onclick="scrollToSection('sectorsSection')">Sectors</button>
     <button onclick="scrollToSection('sizeSection')">Firm-size</button>
     <button onclick="scrollToSection('metierSection')">Métiers</button>
-    <!-- NEW: jump to Skills -->
-   <button onclick="scrollToSection('skillsSection')">Skills</button>
+    <button onclick="scrollToSection('skillsSection')">Skills</button>
     <button onclick="scrollToSection('mapOffersSection')">Map</button>
   </div>
-
 
   <!-- TOTAL OFFERS -->
   <div id="totalOffersSection" class="chart-section">
@@ -195,8 +190,7 @@
     <div class="chart-container"><canvas id="sizeChart"></canvas></div>
   </div>
 
-
- <!-- MÉTIERS (now above the map) -->
+  <!-- MÉTIERS -->
   <div id="metierSection" class="chart-section">
     <h3>AI Offers by Métiers (ROME)</h3>
     <div class="chart-controls">
@@ -210,7 +204,7 @@
     </div>
   </div>
 
-  <!-- NEW: SKILLS EVOLUTION -->
+  <!-- SKILLS -->
   <div id="skillsSection" class="chart-section">
     <h3>Evolution of Skills in AI Job Ads</h3>
     <div class="chart-controls tri-toggle">
@@ -222,8 +216,7 @@
       <canvas id="skillsChart"></canvas>
     </div>
   </div>
-  
-  
+
   <!-- MAP -->
   <div id="mapOffersSection" class="chart-section">
     <h3>Map of French Zones d’Emplois</h3>
@@ -235,8 +228,7 @@
     </div>
     <div class="map-container" id="mapOffers"></div>
   </div>
-</div> 
-
+</div>
 
 <!-- ==========  PROJECTS  ========== -->
 <div id="projects" class="page">
@@ -271,7 +263,7 @@ function showPage(id){
 }
 function scrollToSection(id){
   const el=document.getElementById(id);
-  if(el){showPage('dashboards');el.scrollIntoView({behavior:'smooth'});}  
+  if(el){showPage('dashboards');el.scrollIntoView({behavior:'smooth'});}
 }
 
 /* ---------- load figures for the Home page ---------- */
@@ -293,7 +285,7 @@ async function loadHome(){
     console.error('Error loading home figures:', e);
   }
 }
-  
+
 const fetchCsv=url=>fetch(url).then(r=>{if(!r.ok)throw url;return r.text()});
 const parseCsv=txt=>Papa.parse(txt,{header:false,skipEmptyLines:true}).data.slice(1);
 const monthLabel=i=>`${2019+Math.floor(i/12)}-${String((i%12)+1).padStart(2,'0')}`;
@@ -322,9 +314,31 @@ let mapRows=[];
 let evolDates=[],evolDatesGen=[],evolAI=[],evolGen=[],evolAll=[];
 /* Métiers */
 let metierDates=[],metierDatesData=[],metierIA=[],metierData=[];
-/* Skills (NEW) */
+/* Skills */
 const skillsDates={ml_library:[],method_skills:[],broad_skills:[]};
 const skillsSets ={ml_library:[],method_skills:[],broad_skills:[]};
+
+/* ---------- number sanitizer for CSV ---------- */
+const toNum = v => {
+  if (v == null) return NaN;
+  const n = Number(String(v).replace(/[%\s\u00A0]/g,'').replace(',', '.'));
+  return Number.isFinite(n) ? n : NaN;
+};
+
+/* ---------- robust sector CSV loader (by header + date labels) ---------- */
+async function loadTwoSectors(file, fillLabels, indArr, servArr){
+  const parsed = Papa.parse(await fetchCsv(file), {
+    header: true, skipEmptyLines: true, dynamicTyping: true
+  }).data;
+
+  if (fillLabels) {
+    qLabels = parsed.map(r => r.date);   // use actual dates as x labels
+  }
+  parsed.forEach(r => {
+    indArr.push(toNum(r.Industrie));
+    servArr.push(toNum(r.Services));
+  });
+}
 
 /* ---------- OFFERS chart ---------- */
 let offersChart,offersMode='total';
@@ -357,7 +371,8 @@ function buildSectors(){
     data:{labels:qLabels,
       datasets:[
         {label:'Industrie',backgroundColor:'rgba(153,102,255,0.7)',data:[]},
-        {label:'Services', backgroundColor:'rgba(255,205,86,0.7)',data:[]}]},
+        {label:'Services', backgroundColor:'rgba(255,205,86,0.7)',data:[]}
+      ]},
     options:{responsive:true}
   });
   refreshSectors();
@@ -462,7 +477,7 @@ function buildMetier(){
     data:{labels:metierDates,datasets:metierIA},
     options:{
       responsive:true,
-      maintainAspectRatio:false,   // allow the 900-px height
+      maintainAspectRatio:false,
       scales:{y:{stacked:true}},
       elements:{line:{fill:true,tension:.3}}
     }
@@ -477,7 +492,7 @@ function toggleMetier(){
   metierChart.update();
 }
 
-/* ---------- SKILLS EVOLUTION (NEW) ---------- */
+/* ---------- SKILLS (LINES, not stacked) ---------- */
 let skillsChart, skillsType='ml_library';
 function buildSkills(){
   skillsChart = new Chart(document.getElementById('skillsChart'),{
@@ -487,19 +502,17 @@ function buildSkills(){
       responsive:true,
       maintainAspectRatio:false,
       interaction:{mode:'nearest', intersect:false},
-      scales:{ y:{ stacked:false } },              // ⟵ no stacking
-      elements:{ line:{ fill:false, tension:.25 } },// ⟵ no area fill
+      scales:{ y:{ stacked:false } },
+      elements:{ line:{ fill:false, tension:.25 } },
       plugins:{ legend:{ position:'bottom' } }
     }
   });
 }
 function setSkillsType(t){
   skillsType = t;
-  // toggle tri-toggle buttons
   btnSkillsLibraries.classList.toggle('active', t==='ml_library');
   btnSkillsMethods .classList.toggle('active', t==='method_skills');
   btnSkillsBroad   .classList.toggle('active', t==='broad_skills');
-  // swap data
   skillsChart.data.labels   = skillsDates[t];
   skillsChart.data.datasets = skillsSets[t];
   skillsChart.update();
@@ -514,11 +527,9 @@ async function loadSkills(file, key){
     data: d.map(x=>+x[k]),
     borderColor: pastel(i),
     pointRadius: 0,
-    fill: false                   // ⟵ lines only
-    // (remove: stack:'skills', backgroundColor if you want)
+    fill: false
   }));
 }
-
 
 /* ---------- LOAD EVERYTHING ---------- */
 window.onload=async()=>{
@@ -527,22 +538,26 @@ window.onload=async()=>{
 
   try{
     /* offers */
-    parseCsv(await fetchCsv('data/offers_total.csv')).forEach(r=>{dateLabels.push(monthLabel(+r[0]));totalGen.push(+r[1]);totalAI.push(+r[2]);totalCV.push(+r[3])});
-    parseCsv(await fetchCsv('data/offers_share.csv')).forEach(r=>{shareGen.push(+r[1]);shareAI.push(+r[2]);shareCV.push(+r[3])});
+    parseCsv(await fetchCsv('data/offers_total.csv')).forEach(r=>{
+      dateLabels.push(monthLabel(+r[0])); totalGen.push(+r[1]); totalAI.push(+r[2]); totalCV.push(+r[3]);
+    });
+    parseCsv(await fetchCsv('data/offers_share.csv')).forEach(r=>{
+      shareGen.push(+r[1]); shareAI.push(+r[2]); shareCV.push(+r[3]);
+    });
     buildOffers();
 
-    /* sector bar */
-    parseCsv(await fetchCsv('data/two_sectors_total_gen.csv')).forEach(r=>{const i=+r[0];if(qLabels.length<=i)qLabels.push(quarterLabel(i));indTotGen.push(+r[1]);servTotGen.push(+r[2])});
-    parseCsv(await fetchCsv('data/two_sectors_total_nongen.csv')).forEach(r=>{indTotNon.push(+r[1]);servTotNon.push(+r[2])});
-    parseCsv(await fetchCsv('data/two_sectors_share_gen.csv')).forEach(r=>{indShGen.push(+r[1]);servShGen.push(+r[2])});
-    parseCsv(await fetchCsv('data/two_sectors_share_nongen.csv')).forEach(r=>{indShNon.push(+r[1]);servShNon.push(+r[2])});
+    /* sectors (robust loader) */
+    await loadTwoSectors('data/two_sectors_total_gen.csv',    true,  indTotGen, servTotGen);
+    await loadTwoSectors('data/two_sectors_total_nongen.csv', false, indTotNon, servTotNon);
+    await loadTwoSectors('data/two_sectors_share_gen.csv',    false, indShGen,  servShGen);
+    await loadTwoSectors('data/two_sectors_share_nongen.csv', false, indShNon,  servShNon);
     buildSectors();
 
     /* sector evolution */
     const loadEvol=async(file,targetArr,dateArr)=>{
       const d=Papa.parse(await fetchCsv(file),{header:true,skipEmptyLines:true}).data;
       if(d.length===0) return;
-      if(dateArr.length===0)d.forEach(x=>dateArr.push(x.date));
+      if(dateArr.length===0) d.forEach(x=>dateArr.push(x.date));
       Object.keys(d[0]).filter(k=>k!=='date').forEach((k,i)=>{
         targetArr.push({label:k,data:d.map(x=>+x[k]),borderColor:pastel(i),backgroundColor:pastel(i),fill:true,stack:'s'});
       });
@@ -553,39 +568,34 @@ window.onload=async()=>{
     buildEvol();
 
     /* size */
-    parseCsv(await fetchCsv('data/distrib_size.csv')).forEach(r=>{sizeLabels.push(r[0]);sizeAi.push(+r[1]);sizeGen.push(+r[2])});
+    parseCsv(await fetchCsv('data/distrib_size.csv')).forEach(r=>{
+      sizeLabels.push(r[0]); sizeAi.push(+r[1]); sizeGen.push(+r[2]);
+    });
     buildSize();
 
     /* map */
-    parseCsv(await fetchCsv('data/map_offers.csv')).forEach(r=>mapRows.push({zone:r[0],geometry:r[1],ia:r[2],ia_rel:r[3],gen:r[4],gen_rel:r[5]}));
+    parseCsv(await fetchCsv('data/map_offers.csv')).forEach(r=>{
+      mapRows.push({zone:r[0],geometry:r[1],ia:r[2],ia_rel:r[3],gen:r[4],gen_rel:r[5]});
+    });
     buildMap();
 
-    /* MÉTIERS stacked area */
+    /* métiers */
     const loadMetier = async (file,targetArr,dateArr) => {
       const d = Papa.parse(await fetchCsv(file),{header:true,skipEmptyLines:true}).data;
       if(!d.length) return;
       if(dateArr.length===0) d.forEach(x=>dateArr.push(x.date));
-
       Object.keys(d[0]).filter(k=>k!=='date').forEach((k,i)=>{
         const fill   = metierPalette[i % metierPalette.length];
         const stroke = fill.replace(/0\.40\)/,'1)');
-        targetArr.push({
-          label:k,
-          data:d.map(x=>+x[k]),
-          borderColor:stroke,
-          backgroundColor:fill,
-          fill:true,
-          stack:'s'
-        });
+        targetArr.push({ label:k, data:d.map(x=>+x[k]), borderColor:stroke, backgroundColor:fill, fill:true, stack:'s' });
       });
     };
-
     await loadMetier('data/metier_area_ia.csv'  ,metierIA  ,metierDates);
     await loadMetier('data/metier_area_data.csv',metierData,metierDatesData);
     buildMetier();
 
-    /* SKILLS evolution (NEW) */
-    await loadSkills('data/evolution_ml_library_skills.csv','ml_library');
+    /* skills */
+    await loadSkills('data/evolution_ml_library.csv','ml_library');
     await loadSkills('data/evolution_method_skills.csv','method_skills');
     await loadSkills('data/evolution_broad_skills.csv','broad_skills');
     buildSkills();
@@ -593,12 +603,7 @@ window.onload=async()=>{
   } catch(err) {
     console.error('Error during dashboard load:', err);
   }
-};  
+};
 </script>
 </body>
 </html>
-
-
-
-
-
