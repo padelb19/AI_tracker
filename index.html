@@ -307,7 +307,7 @@ const metierPalette = [
 ];
 
 /* ---------- data holders ---------- */
-let dateLabels=[],totalGen=[],totalAI=[],totalCV=[],shareGen=[],shareAI=[],shareCV=[];
+let dateLabels=[],totalGen=[],totalAI=[],totalCV=[],totalNLP=[],shareGen=[],shareAI=[],shareCV=[],shareNLP=[];
 let qLabels=[],indTotGen=[],servTotGen=[],indTotNon=[],servTotNon=[],indShGen=[],servShGen=[],indShNon=[],servShNon=[];
 let sizeLabels=[],sizeAi=[],sizeGen=[];
 let mapRows=[];
@@ -344,12 +344,16 @@ async function loadTwoSectors(file, fillLabels, indArr, servArr){
 let offersChart,offersMode='total';
 function buildOffers(){
   offersChart=new Chart(document.getElementById('offersChart'),{
-    type:'bar',
-    data:{labels:dateLabels,
+ type:'bar',
+    data:{
+      labels:dateLabels,
       datasets:[
-        {label:'Generative AI',data:totalGen,backgroundColor:'rgba(255,99,132,0.7)'},
-        {label:'General AI',   data:totalAI, backgroundColor:'rgba(75,192,192,0.7)'},
-        {label:'Computer vision',data:totalCV,backgroundColor:'rgba(54,162,235,0.7)'}]},
+        {label:'Generative AI',   data:totalGen, backgroundColor:'rgba(255,99,132,0.7)'},
+        {label:'General AI',      data:totalAI,  backgroundColor:'rgba(75,192,192,0.7)'},
+        {label:'Computer Vision', data:totalCV,  backgroundColor:'rgba(54,162,235,0.7)'},
+        {label:'NLP',             data:totalNLP, backgroundColor:'rgba(153,102,255,0.7)'}
+      ]
+    },
     options:{responsive:true,scales:{x:{stacked:true},y:{stacked:true}}}
   });
 }
@@ -358,6 +362,7 @@ function toggleTotalShare(){
   offersChart.data.datasets[0].data=offersMode==='total'?totalGen:shareGen;
   offersChart.data.datasets[1].data=offersMode==='total'?totalAI:shareAI;
   offersChart.data.datasets[2].data=offersMode==='total'?totalCV:shareCV;
+  offersChart.data.datasets[3].data = (offersMode==='total') ? totalNLP  : shareNLP; //
   offersChart.update();
   btnOfferMode.classList.toggle('active',offersMode==='share');
   lblOfferMode.textContent=offersMode.charAt(0).toUpperCase()+offersMode.slice(1);
@@ -539,10 +544,10 @@ window.onload=async()=>{
   try{
     /* offers */
     parseCsv(await fetchCsv('data/offers_total.csv')).forEach(r=>{
-      dateLabels.push(monthLabel(+r[0])); totalGen.push(+r[1]); totalAI.push(+r[2]); totalCV.push(+r[3]);
+      dateLabels.push(monthLabel(+r[0])); totalGen.push(+r[1]); totalAI.push(+r[2]); totalCV.push(+r[3]);   totalNLP.push(+r[4]);
     });
     parseCsv(await fetchCsv('data/offers_share.csv')).forEach(r=>{
-      shareGen.push(+r[1]); shareAI.push(+r[2]); shareCV.push(+r[3]);
+      shareGen.push(+r[1]); shareAI.push(+r[2]); shareCV.push(+r[3]);shareNLP.push(+r[4]);
     });
     buildOffers();
 
@@ -607,4 +612,5 @@ window.onload=async()=>{
 </script>
 </body>
 </html>
+
 
