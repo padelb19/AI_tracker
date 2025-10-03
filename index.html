@@ -7,9 +7,9 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Map -->
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
 
   <!-- PapaParse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -443,35 +443,146 @@ function toggleSizeAiGen(){
 }
 
 /* ---------- MAP ---------- */
-let map,mapMode='total',mapCat='ai';
-const pick=v=>isNaN(v)?'#ccc':v<10?'#fee5d9':v<50?'#fcae91':v<200?'#fb6a4a':v<500?'#de2d26':'#a50f15';
-function buildMap(){
-  map=L.map('mapOffers').setView([46.8,2],6);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap'}).addTo(map);
-  mapRows.forEach(r=>{
-    const layer=L.geoJSON(JSON.parse(r.geometry),{style:{fillColor:'#fcae91',color:'#888',weight:1,fillOpacity:.6}}).addTo(map);
-    layer.bindPopup(`<b>${r.zone}</b><br/>AI: ${r.ia} (${r.ia_rel}%)<br/>GenAI: ${r.gen} (${r.gen_rel}%)`);
-    r.layer=layer;
+/* ---------- FRANCE-ONLY CHOROPLETH (Zones d’emploi) ---------- */
+let mapMode = 'total';   // 'total' | 'share' (kept from your UI)
+let mapCat  = 'ai';      // 'ai' | 'gen'       (kept from your UI)
+
+let mapData = new Map(); // zone -> { ia, ia_rel, gen, gen_rel, total_offers }
+let zonesFC, bordersMesh;
+let svg, gMain, gFill, gBorders, path, color, tip;
+
+async function loadFrancePolygonMap(){
+  // 1) Shapes (TopoJSON)
+  const topo = await (await fetch('data/france_zones.topo.json')).json();
+  const objName = Object.keys(topo.objects)[0];
+  zonesFC = topojson.feature(topo, topo.objects[objName]);
+  bordersMesh = topojson.mesh(topo, topo.objects[objName], (a,b)=>a!==b);
+
+  // Ensure the join key is "zone"
+  zonesFC.features.forEach(f=>{
+    if (!f.properties.zone) {
+      // If your topo has a different field, normalize it here:
+      // f.properties.zone = f.properties['Nom Officiel Zone emploi 2020'] || f.properties.ZE2020;
+    }
   });
-  recolorMap();
-}
-function recolorMap(){
-  mapRows.forEach(r=>{
-    const val=mapCat==='ai'?(mapMode==='total'?r.ia:r.ia_rel):(mapMode==='total'?r.gen:r.gen_rel);
-    r.layer.setStyle({fillColor:pick(+val)});
+
+  // 2) Values (no geometry)
+  const csvTxt = await fetchCsv('data/map_offers_values.csv');
+  const rows   = Papa.parse(csvTxt, {header:true, skipEmptyLines:true}).data;
+  rows.forEach(r=>{
+    mapData.set(r.zone, {
+      ia:+r.ia, ia_rel:+r.ia_rel,
+      gen:+r.gen, gen_rel:+r.gen_rel,
+      total_offers:+r.total_offers
+    });
   });
+
+  // 3) Draw
+  initStaticFrance();
 }
+
+function initStaticFrance(){
+  const container = document.getElementById('mapOffers');
+  container.innerHTML = '';
+  const width  = container.clientWidth;
+  const height = container.clientHeight;
+
+  svg   = d3.select('#mapOffers').append('svg')
+              .attr('width', width).attr('height', height);
+  gMain = svg.append('g');
+  gFill = gMain.append('g');     // colored polygons
+  gBorders = gMain.append('g');  // white borders overlay
+
+  const projection = d3.geoConicConformal().parallels([44,49]).rotate([-3,0]);
+  path = d3.geoPath(projection);
+
+  // Fit to box
+  const b = d3.geoBounds(zonesFC);
+  const s = 0.95 / Math.max((b[1][0]-b[0][0])/width, (b[1][1]-b[0][1])/height);
+  const c = d3.geoCentroid(zonesFC);
+  projection.scale(150*s).center(c).translate([width/2, height/2]);
+
+  // Color thresholds (tune for your data; these are for counts)
+  color = d3.scaleThreshold()
+            .domain([10,50,200,500])
+            .range(['#fee5d9','#fcae91','#fb6a4a','#de2d26','#a50f15']);
+
+  tip = d3.select('body').append('div')
+          .style('position','absolute')
+          .style('pointer-events','none')
+          .style('opacity',0);
+
+  // Draw fills
+  gFill.selectAll('path')
+      .data(zonesFC.features)
+      .enter().append('path')
+        .attr('d', path)
+        .attr('fill', d => fillValue(d))
+        .attr('stroke', '#888')
+        .attr('stroke-width', 0.2)
+        .on('mousemove', (ev, d) => {
+          const z = d.properties.zone;
+          const v = mapData.get(z);
+          if(!v) return;
+          tip.html(`
+            <div style="background:#fff;border:1px solid #ccc;padding:6px 8px;border-radius:4px;box-shadow:0 2px 6px rgba(0,0,0,.15);">
+              <b>${z}</b><br/>
+              AI: ${v.ia} (${(v.ia_rel||0)}%)<br/>
+              GenAI: ${v.gen} (${(v.gen_rel||0)}%)
+            </div>`)
+            .style('left', (ev.pageX+12)+'px')
+            .style('top',  (ev.pageY+12)+'px')
+            .style('opacity', 1);
+        })
+        .on('mouseleave', ()=> tip.style('opacity',0));
+
+  // White internal borders (CovidTracker look)
+  if (bordersMesh) {
+    gBorders.append('path')
+      .datum(bordersMesh)
+      .attr('d', path)
+      .attr('fill', 'none')
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 0.9);
+  }
+
+  // Optional wheel zoom
+  svg.call(d3.zoom().scaleExtent([1, 8]).on('zoom', e => gMain.attr('transform', e.transform)));
+}
+
+function currentMetric(v){
+  if (mapCat==='ai')  return mapMode==='total' ? v.ia  : v.ia_rel;
+  else                return mapMode==='total' ? v.gen : v.gen_rel;
+}
+function fillValue(feature){
+  const z = feature.properties.zone;
+  const v = mapData.get(z);
+  if(!v) return '#ccc';
+  const x = currentMetric(v);
+  return (isNaN(x) ? '#ccc' : color(x));
+}
+function recolorFrancePolygon(){
+  gFill.selectAll('path').attr('fill', d => fillValue(d));
+}
+
+/* Reuse your existing buttons: same function names */
 function toggleMapTotalShare(){
-  mapMode=mapMode==='total'?'share':'total';
-  btnMapMode.classList.toggle('active',mapMode==='share');
-  lblMapMode.textContent=mapMode.charAt(0).toUpperCase()+mapMode.slice(1);
-  recolorMap();
+  mapMode = (mapMode==='total') ? 'share' : 'total';
+  btnMapMode.classList.toggle('active', mapMode==='share');
+  lblMapMode.textContent = mapMode.charAt(0).toUpperCase()+mapMode.slice(1);
+
+  // If your _share_ columns are in fractions (e.g., 0.02), use fraction thresholds:
+  // color.domain([0.005, 0.02, 0.05, 0.10]);
+  // If they are in percents (e.g., 2.1), use percent thresholds:
+  // color.domain([1, 2, 5, 10]);
+
+  recolorFrancePolygon();
 }
 function toggleMapAiGen(){
-  mapCat=mapCat==='ai'?'gen':'ai';
-  btnMapCat.classList.toggle('active',mapCat==='gen');
-  lblMapCat.textContent=mapCat==='gen'?'Generative AI':'AI';
-  recolorMap();
+  mapCat = (mapCat==='ai') ? 'gen' : 'ai';
+  btnMapCat.classList.toggle('active', mapCat==='gen');
+  lblMapCat.textContent = (mapCat==='gen') ? 'Generative AI' : 'AI';
+  recolorFrancePolygon();
 }
 
 /* ---------- MÉTIERS AREA CHART ---------- */
@@ -579,11 +690,7 @@ window.onload=async()=>{
     buildSize();
 
     /* map */
-    parseCsv(await fetchCsv('data/map_offers.csv')).forEach(r=>{
-      mapRows.push({zone:r[0],geometry:r[1],ia:r[2],ia_rel:r[3],gen:r[4],gen_rel:r[5]});
-    });
-    buildMap();
-
+    await loadFrancePolygonMap();
     /* métiers */
     const loadMetier = async (file,targetArr,dateArr) => {
       const d = Papa.parse(await fetchCsv(file),{header:true,skipEmptyLines:true}).data;
@@ -612,5 +719,6 @@ window.onload=async()=>{
 </script>
 </body>
 </html>
+
 
 
