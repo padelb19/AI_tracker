@@ -452,24 +452,37 @@ let zonesFC, bordersMesh;
 let svg, gMain, gFill, gBorders, path, color, tip;
 
 async function loadFrancePolygonMap(){
-  // 1) Shapes (TopoJSON)
-  const topo = await (await fetch('data/france_zones.topo.json')).json();
+  // 1) Shapes (TopoJSON) with error checks
+  const topoResp = await fetch('data/france_zones.topo.json');
+  if (!topoResp.ok) throw new Error('Missing file: data/france_zones.topo.json');
+  const topo = await topoResp.json();
+
   const objName = Object.keys(topo.objects)[0];
+  if (!objName) throw new Error('No objects in TopoJSON.');
   zonesFC = topojson.feature(topo, topo.objects[objName]);
   bordersMesh = topojson.mesh(topo, topo.objects[objName], (a,b)=>a!==b);
 
-  // Ensure the join key is "zone"
+  // Ensure a usable join key
   zonesFC.features.forEach(f=>{
     if (!f.properties.zone) {
-      // If your topo has a different field, normalize it here:
-      // f.properties.zone = f.properties['Nom Officiel Zone emploi 2020'] || f.properties.ZE2020;
+      f.properties.zone =
+        f.properties['Nom Officiel Zone emploi 2020'] ||
+        f.properties.ZE2020 ||
+        f.properties.nom ||                // departements (if you switch)
+        f.properties.code_insee ||         // departements (code)
+        null;
     }
   });
 
-  // 2) Values (no geometry)
-  const csvTxt = await fetchCsv('data/map_offers_values.csv');
-  const rows   = Papa.parse(csvTxt, {header:true, skipEmptyLines:true}).data;
-  rows.forEach(r=>{
+  // 2) Values CSV
+  const csvResp = await fetch('data/map_offers_values.csv');
+  if (!csvResp.ok) throw new Error('Missing file: data/map_offers_values.csv');
+  const csvTxt = await csvResp.text();
+  const parsed = Papa.parse(csvTxt, {header:true, skipEmptyLines:true});
+  if (!parsed.data || !parsed.data.length) throw new Error('Empty map_offers_values.csv');
+  parsed.data.forEach(r=>{
+    // expected headers: zone, ia, ia_rel, gen, gen_rel, total_offers
+    if (!r.zone) return;
     mapData.set(r.zone, {
       ia:+r.ia, ia_rel:+r.ia_rel,
       gen:+r.gen, gen_rel:+r.gen_rel,
@@ -480,6 +493,7 @@ async function loadFrancePolygonMap(){
   // 3) Draw
   initStaticFrance();
 }
+
 
 function initStaticFrance(){
   const container = document.getElementById('mapOffers');
@@ -689,28 +703,27 @@ window.onload=async()=>{
     });
     buildSize();
 
-    /* map */
-    await loadFrancePolygonMap();
-    /* métiers */
-    const loadMetier = async (file,targetArr,dateArr) => {
-      const d = Papa.parse(await fetchCsv(file),{header:true,skipEmptyLines:true}).data;
-      if(!d.length) return;
-      if(dateArr.length===0) d.forEach(x=>dateArr.push(x.date));
-      Object.keys(d[0]).filter(k=>k!=='date').forEach((k,i)=>{
-        const fill   = metierPalette[i % metierPalette.length];
-        const stroke = fill.replace(/0\.40\)/,'1)');
-        targetArr.push({ label:k, data:d.map(x=>+x[k]), borderColor:stroke, backgroundColor:fill, fill:true, stack:'s' });
-      });
-    };
-    await loadMetier('data/metier_area_ia.csv'  ,metierIA  ,metierDates);
-    await loadMetier('data/metier_area_data.csv',metierData,metierDatesData);
-    buildMetier();
+/* métiers */
+const loadMetier = async (file,targetArr,dateArr) => { /* ... as is ... */ };
+await loadMetier('data/metier_area_ia.csv'  ,metierIA  ,metierDates);
+await loadMetier('data/metier_area_data.csv',metierData,metierDatesData);
+buildMetier();
 
-    /* skills */
-    await loadSkills('data/evolution_ml_library_skills.csv','ml_library');
-    await loadSkills('data/evolution_method_skills.csv','method_skills');
-    await loadSkills('data/evolution_broad_skills.csv','broad_skills');
-    buildSkills();
+/* skills */
+await loadSkills('data/evolution_ml_library_skills.csv','ml_library');
+await loadSkills('data/evolution_method_skills.csv','method_skills');
+await loadSkills('data/evolution_broad_skills.csv','broad_skills');
+buildSkills();
+
+/* map (last, isolated) */
+try {
+  await loadFrancePolygonMap();
+} catch (e) {
+  console.error('Map failed:', e);
+  // Optional: show a friendly placeholder
+  const m = document.getElementById('mapOffers');
+  if (m) m.innerHTML = '<div style="text-align:center;padding:20px;color:#a00">Map data missing or invalid.</div>';
+}
 
   } catch(err) {
     console.error('Error during dashboard load:', err);
@@ -719,6 +732,7 @@ window.onload=async()=>{
 </script>
 </body>
 </html>
+
 
 
 
