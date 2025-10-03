@@ -414,7 +414,6 @@
 <!-- ==========  SCRIPTS  ========== -->
 <script>
 /* ---------- helpers ---------- */
-<script>
 function showPage(id){
   // swap visible page
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -432,8 +431,8 @@ function showPage(id){
     setTimeout(()=> { updateLegend(); }, 50);
   }
 }
-</script>
-function scrollToSection(id){
+
+  function scrollToSection(id){
   const el=document.getElementById(id);
   if(el){showPage('dashboards');el.scrollIntoView({behavior:'smooth'});}
 }
@@ -1131,6 +1130,7 @@ try {
 </script>
 </body>
 </html>
+
 
 
 
