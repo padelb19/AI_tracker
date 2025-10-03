@@ -25,13 +25,13 @@
      ========================= */
   :root{
     /* brand */
-    --brand-900:#0b1f3a; /* deep navy */
+    --brand-900:#0b1f3a;
     --brand-800:#132a4a;
     --brand-700:#1c3a63;
     --brand-600:#274b7a;
-    --brand-500:#2f5f9a; /* primary accent */
-    --brand-300:#7ea7d8; /* light accent */
-    --brand-100:#e9f0f8; /* very light bg */
+    --brand-500:#2f5f9a;
+    --brand-300:#7ea7d8;
+    --brand-100:#e9f0f8;
 
     /* neutrals */
     --ink-900:#0f172a;
@@ -46,12 +46,6 @@
     --card-border:#e5e7eb;
     --shadow: 0 10px 25px rgba(2,12,27,.08);
     --radius: 14px;
-
-    /* chart accents (optional) */
-    --ai:#e63946;      /* red   */
-    --gen:#2b6cb0;     /* blue  */
-    --cv:#0ea5e9;      /* cyan  */
-    --nlp:#8b5cf6;     /* violet */
   }
 
   /* Background + typography */
@@ -222,11 +216,10 @@
   #mapLegend .tick text{ fill: var(--ink-600); font-size:12px }
   </style>
 
-  <!-- Chart.js global theme defaults (after Chart.js script) -->
+  <!-- Chart.js global theme defaults -->
   <script>
-    // Apply once; all charts inherit
     Chart.defaults.font.family = 'Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif';
-    Chart.defaults.color = '#334155'; // axis/legend text
+    Chart.defaults.color = '#334155';
     Chart.defaults.elements.line.borderWidth = 2;
     Chart.defaults.elements.point.radius = 0;
     Chart.defaults.plugins.legend.labels.boxWidth = 14;
@@ -296,8 +289,6 @@
     </div>
   </div>
 </div>
-
-<!-- (Your Dashboards, Projects, and scripts continue below…) -->
 
   /* ==========  DASHBOARDS  ========== */
   #dashboards{margin:0 auto;max-width:1000px}
@@ -1222,6 +1213,7 @@ try {
 </script>
 </body>
 </html>
+
 
 
 
