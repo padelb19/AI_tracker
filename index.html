@@ -290,100 +290,6 @@
   </div>
 </div>
 
-  /* ==========  DASHBOARDS  ========== */
-  #dashboards{margin:0 auto;max-width:1000px}
-  #dashboards h2{text-align:center;margin-bottom:10px}
-  .dashboard-intro{max-width:850px;margin:0 auto 25px;text-align:center;font-size:.95rem;color:#333}
-  .sub-nav{text-align:center;margin-bottom:20px}
-  .sub-nav button{margin:5px;background:#fff;border:1px solid #ccc;border-radius:4px;cursor:pointer}
-  .chart-section{margin-bottom:40px}
-  .chart-container{max-width:1800px;margin:0 auto}
-  #sizeSection   .chart-container{max-width:400px;height:400px;margin:0 auto}
-  #metierSection .chart-container{max-width:1000px;height:900px;margin:0 auto}
-  #skillsSection .chart-container{max-width:1000px;height:600px;margin:0 auto}
-  #mapOffersSection .map-container{
-  width: 100%;
-  max-width: 1100px;   /* was 600px */
-  height: 720px;       /* was 600px */
-  margin: 0 auto;
-}
-
-  /* toggle switch */
-  .toggle-btn{position:relative;display:inline-block;width:90px;height:30px;border:none;border-radius:15px;background:#ccc;cursor:pointer}
-  .toggle-btn .slider{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .25s}
-  .toggle-btn.active{background:#7fbf7f}.toggle-btn.active .slider{left:63px}
-  .toggle-label{margin-left:8px;font-size:14px;font-weight:bold}
-  .chart-controls{display:flex;justify-content:center;align-items:center;gap:15px;margin:10px 0}
-
-  /* tri-toggle */
-  .tri-toggle .evol-btn{border:1px solid #ccc;border-right:none;padding:7px 18px;background:#f6f6f6;font-weight:bold;cursor:pointer}
-  .tri-toggle .evol-btn:last-child{border-right:1px solid #ccc}
-  .tri-toggle .evol-btn.active{background:#7fbf7f;color:#fff}
-
-  /* ==========  PROJECTS  ========== */
-  #projects h2{text-align:center;margin-bottom:40px}
-  #projects section{max-width:800px;margin:0 auto 30px}
-  #projects section h3{border-bottom:1px solid #ccc;padding-bottom:5px;margin-bottom:10px}
-  </style>
-</head>
-<body>
-
-<header>
-  <div class="header-top">
-    <div class="left-block"><img src="logo.png" alt="AI-tracker logo" class="logo"></div>
-    <div class="center-block"><h1>The French AI-tracker</h1></div>
-    <div class="right-block"></div>
-  </div>
-  <nav>
-    <button onclick="showPage('accueil')">Accueil</button>
-    <button onclick="showPage('dashboards')">Dashboards</button>
-    <button onclick="showPage('projects')">About</button>
-  </nav>
-</header>
-
-<!-- ==========  HOME  ========== -->
-<div id="accueil" class="page active">
-  <h2 class="welcome-title">
-    Welcome to our AI-tracker!
-    <span class="subtitle">A real-time dashboard tracking how artificial intelligence spreads through the French economy.</span>
-  </h2>
-
-  <div class="explanation">
-    <p>The French AI-tracker is an open-access <strong>research project</strong> that monitors, almost in real time, the diffusion of artificial-intelligence technologies within French companies.</p>
-    <p>Using machine-learning models to sift through millions of job ads in the
-       <a href="https://dares.travail-emploi.gouv.fr/enquete-source/job-offers-collection-and-analysis-system" target="_blank" rel="noopener noreferrer">JOCAS</a> database (DARES), we detect every vacancy that signals an AI-related role and thus detect gradual AI adoption.
-      By updating the figures each week, we provide researchers, journalists, policymakers and citizens with a transparent window onto <em>where</em>, <em>how fast</em> and in <em>which form</em> AI is reshaping the labour market.</p>
-  </div>
-
-  <h3 class="figures-title">Key figures at a glance</h3>
-  <div class="additional-figures">
-    <div class="figures-row">
-      <div class="key-figure-card clickable" onclick="scrollToSection('totalOffersSection')">
-        <h4>Total AI Offers</h4>
-        <p id="aiOffersValue">…</p>
-        <p><small id="aiOffersLastQuarter">…</small></p>
-      </div>
-      <div class="key-figure-card clickable" onclick="scrollToSection('sectorsSection')">
-        <h4>Total AI Adopters</h4>
-        <p id="aiFirmsValue">…</p>
-        <p><small id="aiFirmsLastQuarter">…</small></p>
-      </div>
-    </div>
-    <div class="figures-row">
-      <div class="key-figure-card clickable" onclick="scrollToSection('totalOffersSection')">
-        <h4>Total GenAI Offers</h4>
-        <p id="genAiOffersValue">…</p>
-        <p><small id="genAiOffersLastQuarter">…</small></p>
-      </div>
-      <div class="key-figure-card clickable" onclick="scrollToSection('sectorsSection')">
-        <h4>Total GenAI Adopters</h4>
-        <p id="genAiFirmsValue">…</p>
-        <p><small id="genAiFirmsLastQuarter">…</small></p>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ==========  DASHBOARDS  ========== -->
 <div id="dashboards" class="page">
   <h2>Dashboards</h2>
@@ -482,8 +388,6 @@
   </div>
 </div>
 
-
-  
 <!-- ==========  PROJECTS  ========== -->
 <div id="projects" class="page">
   <h2>Projects</h2>
@@ -1213,6 +1117,7 @@ try {
 </script>
 </body>
 </html>
+
 
 
 
