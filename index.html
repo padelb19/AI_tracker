@@ -657,6 +657,46 @@ function buildMetier(){
     }
   });
 }
+
+// Hardened Métiers CSV loader
+async function loadMetier(file, targetArr, dateArr) {
+  const txt = await fetchCsv(file);
+  const d = Papa.parse(txt, { header: true, skipEmptyLines: true }).data;
+  if (!d.length) {
+    console.warn('Metier CSV is empty:', file);
+    return;
+  }
+
+  // Fill date labels once
+  if (dateArr.length === 0) d.forEach(x => dateArr.push(x.date));
+
+  // All columns except 'date' become series
+  const keys = Object.keys(d[0]).filter(k => k !== 'date');
+  if (!keys.length) {
+    console.warn('Metier CSV has no columns (except date):', file);
+    return;
+  }
+
+  keys.forEach((k, i) => {
+    const fill = metierPalette[i % metierPalette.length]; // e.g. 'rgba(...,1.0)'
+    // soften fill if it's rgba(...,1.0)
+    const bg = fill.replace(/1\.0\)$/, '0.35)');
+
+    targetArr.push({
+      label: k,
+      data: d.map(x => toNum(x[k])),   // numeric
+      borderColor: fill,               // stroke
+      backgroundColor: bg,             // translucent fill
+      fill: true,
+      stack: 's',
+      pointRadius: 0
+    });
+  });
+
+  console.log('Loaded métiers:', file, 'series:', keys.length, 'points:', dateArr.length);
+}
+
+  
 function toggleMetier(){
   metierMode = (metierMode==='ia') ? 'data' : 'ia';
   btnMetierCat.classList.toggle('active',metierMode==='data');
@@ -775,6 +815,7 @@ try {
 </script>
 </body>
 </html>
+
 
 
 
