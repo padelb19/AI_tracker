@@ -665,7 +665,7 @@ function updateColorScale(){
   }
 
   // Choose thresholds
-  const thresholds = isShare ? quantileThresholds(vals, 10) : quantileThresholds(vals, 10);
+  const thresholds = isShare ? logThresholds(vals) : logThresholds(vals);
 
   // Choose palette with exactly thresholds.length + 1 colors
   let palette;
@@ -874,6 +874,7 @@ try {
 </script>
 </body>
 </html>
+
 
 
 
