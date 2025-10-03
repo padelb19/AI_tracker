@@ -494,6 +494,45 @@ async function loadFrancePolygonMap(){
   initStaticFrance();
 }
 
+function computeThresholds(values, isShare){
+  // Remove NaNs
+  const v = values.filter(x => Number.isFinite(x));
+  if (!v.length) return isShare ? [0.1, 0.5, 1, 2] : [10, 50, 200, 500];
+
+  const max = d3.max(v);
+  if (isShare) {
+    // If shares are in [0,1], put thresholds in percentage points
+    const isFraction = max <= 1.0;
+    const scale = isFraction ? 100 : 1;
+    const M = max * scale;
+    // 4 nice thresholds between 0 and M
+    const t = d3.ticks(0, M, 5).slice(1); // 4 thresholds
+    return t;
+  } else {
+    // counts
+    const t = d3.ticks(0, max, 5).slice(1);
+    return t;
+  }
+}
+
+function updateColorScale(){
+  // Collect current metric over all zones
+  const vals = zonesFC.features.map(f => {
+    const v = mapData.get(f.properties.zone);
+    if (!v) return NaN;
+    return (mapCat==='ai')
+      ? (mapMode==='total' ? +v.ia  : +v.ia_rel)
+      : (mapMode==='total' ? +v.gen : +v.gen_rel);
+  });
+
+  const isShare = (mapMode === 'share');
+  const thresholds = computeThresholds(vals, isShare);
+
+  // Rebuild color scale with new thresholds
+  color = d3.scaleThreshold()
+            .domain(thresholds)
+            .range(['#fee5d9','#fcae91','#fb6a4a','#de2d26','#a50f15']);
+}
 
 function initStaticFrance(){
   const container = document.getElementById('mapOffers');
@@ -510,17 +549,14 @@ function initStaticFrance(){
   const projection = d3.geoConicConformal().parallels([44,49]).rotate([-3,0]);
   path = d3.geoPath(projection);
 
-  // Fit to box
-  const b = d3.geoBounds(zonesFC);
-  const s = 0.95 / Math.max((b[1][0]-b[0][0])/width, (b[1][1]-b[0][1])/height);
-  const c = d3.geoCentroid(zonesFC);
-  projection.scale(150*s).center(c).translate([width/2, height/2]);
+ // FIT (see section 3 below for the improved fit)
+  
+  projection.fitSize([width, height], zonesFC);
 
-  // Color thresholds (tune for your data; these are for counts)
-  color = d3.scaleThreshold()
-            .domain([10,50,200,500])
-            .range(['#fee5d9','#fcae91','#fb6a4a','#de2d26','#a50f15']);
-
+  // << NEW: set color scale based on current data >>
+  
+  updateColorScale();
+  
   tip = d3.select('body').append('div')
           .style('position','absolute')
           .style('pointer-events','none')
@@ -576,20 +612,14 @@ function fillValue(feature){
   return (isNaN(x) ? '#ccc' : color(x));
 }
 function recolorFrancePolygon(){
+  updateColorScale(); // <— recompute thresholds for the new mode/cat
   gFill.selectAll('path').attr('fill', d => fillValue(d));
 }
 
-/* Reuse your existing buttons: same function names */
 function toggleMapTotalShare(){
   mapMode = (mapMode==='total') ? 'share' : 'total';
   btnMapMode.classList.toggle('active', mapMode==='share');
   lblMapMode.textContent = mapMode.charAt(0).toUpperCase()+mapMode.slice(1);
-
-  // If your _share_ columns are in fractions (e.g., 0.02), use fraction thresholds:
-  // color.domain([0.005, 0.02, 0.05, 0.10]);
-  // If they are in percents (e.g., 2.1), use percent thresholds:
-  // color.domain([1, 2, 5, 10]);
-
   recolorFrancePolygon();
 }
 function toggleMapAiGen(){
@@ -732,6 +762,7 @@ try {
 </script>
 </body>
 </html>
+
 
 
 
