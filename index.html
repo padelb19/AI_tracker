@@ -647,7 +647,7 @@ function updateColorScale(){
   }
 
   // Choose thresholds: quantiles for share, log for totals
-  const thresholds = isShare ? quantileThresholds(vals) : logThresholds(vals);
+  const thresholds = isShare ? logThresholds(vals) : logThresholds(vals);
 
   // Rebuild color scale with new thresholds
   color = d3.scaleThreshold()
@@ -844,6 +844,7 @@ try {
 </script>
 </body>
 </html>
+
 
 
 
