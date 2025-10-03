@@ -55,7 +55,12 @@
   #sizeSection   .chart-container{max-width:400px;height:400px;margin:0 auto}
   #metierSection .chart-container{max-width:1000px;height:900px;margin:0 auto}
   #skillsSection .chart-container{max-width:1000px;height:600px;margin:0 auto}
-  #mapOffersSection .map-container{width:600px;height:600px;margin:0 auto}
+  #mapOffersSection .map-container{
+  width: 100%;
+  max-width: 1100px;   /* was 600px */
+  height: 720px;       /* was 600px */
+  margin: 0 auto;
+}
 
   /* toggle switch */
   .toggle-btn{position:relative;display:inline-block;width:90px;height:30px;border:none;border-radius:15px;background:#ccc;cursor:pointer}
@@ -496,13 +501,30 @@ async function loadFrancePolygonMap(){
   initFranceStatic();
 }
 
+// Simple number formatting
+const fmtInt = d3.format(",.0f");
+const fmt1   = d3.format(".1f");
+const fmt2   = d3.format(".2f");
+
+function formatMetricValue(x){
+  if (!Number.isFinite(x)) return "n/a";
+  const isShare = (mapMode === 'share');
+  if (isShare){
+    // auto-detect fraction vs percent
+    if (x <= 1) return `${fmt2(x*100)}%`;
+    return `${fmt2(x)}%`;
+  } else {
+    return fmtInt(x);
+  }
+}
+  
 // --- 2) Static rendering (fit to container, no interactions) ---
 function initFranceStatic(){
   const container = document.getElementById('mapOffers');
   container.innerHTML = '';
 
-  // Use fixed internal size + viewBox => crisp + responsive
-  const W = 720, H = 660;
+  // Responsive SVG
+  const W = 1000, H = 880; // internal coordinate space (kept large for sharpness)
   svg = d3.select('#mapOffers').append('svg')
     .attr('viewBox', `0 0 ${W} ${H}`)
     .attr('preserveAspectRatio', 'xMidYMid meet')
@@ -513,13 +535,22 @@ function initFranceStatic(){
   projection.fitSize([W, H], zonesFC);
   path = d3.geoPath(projection);
 
-  // Build an initial color scale tuned to current data
   updateColorScale();
 
-  // Group for fills
-  gFill = svg.append('g');
+  // Tooltip (fixed, super light)
+  const tip = d3.select('body').append('div')
+    .style('position','absolute')
+    .style('pointer-events','none')
+    .style('background','#fff')
+    .style('border','1px solid #ccc')
+    .style('border-radius','4px')
+    .style('padding','6px 8px')
+    .style('box-shadow','0 2px 6px rgba(0,0,0,.15)')
+    .style('font','12px sans-serif')
+    .style('opacity',0);
 
-  // Draw zones once (white borders, CovidTracker look)
+  // Draw zones once (white borders)
+  gFill = svg.append('g');
   zonePaths = gFill.selectAll('path')
     .data(zonesFC.features)
     .enter()
@@ -527,9 +558,32 @@ function initFranceStatic(){
       .attr('d', path)
       .attr('fill', d => fillValue(d))
       .attr('stroke', '#fff')
-      .attr('stroke-width', 1);
-
-  // That’s it. No zoom/pan, no mouse listeners.
+      .attr('stroke-width', 1)
+      // --- Hover highlight + tooltip ---
+      .on('mouseenter', function(ev, d){
+        d3.select(this).attr('stroke', '#111').attr('stroke-width', 2);
+        // bring hovered path to top for crisp border
+        this.parentNode.appendChild(this);
+        tip.style('opacity', 1);
+      })
+      .on('mousemove', function(ev, d){
+        const zone = d.properties.zone;
+        const v = mapData.get(zone);
+        const val = v ? currentMetric(v) : NaN;
+        tip.html(
+          `<b>${zone}</b><br/>` +
+          (mapCat==='ai'
+            ? `AI: <b>${formatMetricValue(v?.ia)}</b>${mapMode==='share' ? ` (${formatMetricValue(v?.ia_rel)})` : ''}`
+            : `GenAI: <b>${formatMetricValue(v?.gen)}</b>${mapMode==='share' ? ` (${formatMetricValue(v?.gen_rel)})` : ''}`
+          )
+        )
+        .style('left',  (ev.pageX + 12) + 'px')
+        .style('top',   (ev.pageY + 12) + 'px');
+      })
+      .on('mouseleave', function(){
+        d3.select(this).attr('stroke', '#fff').attr('stroke-width', 1);
+        tip.style('opacity', 0);
+      });
 }
 
 // --- 3) Color logic with auto thresholds per mode/category ---
@@ -721,6 +775,7 @@ try {
 </script>
 </body>
 </html>
+
 
 
 
