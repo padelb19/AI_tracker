@@ -518,7 +518,25 @@ function logThresholds(values){
   return logs.slice(1).map(t => Math.pow(10, t));              // drop lowest tick
 }
 
-
+function quantileThresholds(values, n = 10){
+  const v = values.filter(Number.isFinite).sort(d3.ascending);
+  if (!v.length) return [];
+  const t = [];
+  for (let i = 1; i < n; i++) t.push(d3.quantileSorted(v, i / n));
+  return t; // length = n-1 → n color classes
+}
+const REDS_10 = [
+  '#fff5f0', // very light
+  '#fee6dd',
+  '#fdd0c2',
+  '#fcb49a',
+  '#fc9272',
+  '#fb6a4a',
+  '#ef3b2c',
+  '#cb181d',
+  '#a50f15',
+  '#67000d'  // darkest
+];
   
 // Simple number formatting
 const fmtInt = d3.format(",.0f");
@@ -633,27 +651,39 @@ function computeThresholds(values, isShare){
 }
 function updateColorScale(){
   // Gather current metric values
-  let vals = zonesFC.features.map(f=>{
+  let vals = zonesFC.features.map(f => {
     const v = mapData.get(f.properties.zone);
     return v ? currentMetric(v) : NaN;
   });
 
   const isShare = (mapMode === 'share');
 
-  // If shares are stored as fractions (<=1), scale to percent for nicer thresholds
+  // If share values are fractions (<=1), turn to % for nicer cut points
   if (isShare) {
     const maxAbs = d3.max(vals.filter(Number.isFinite).map(Math.abs)) || 0;
-    if (maxAbs <= 1) vals = vals.map(x => Number.isFinite(x) ? x*100 : x);
+    if (maxAbs <= 1) vals = vals.map(x => Number.isFinite(x) ? x * 100 : x);
   }
 
-  // Choose thresholds: quantiles for share, log for totals
-  const thresholds = isShare ? logThresholds(vals) : logThresholds(vals);
+  // Choose thresholds
+  const thresholds = isShare ? quantileThresholds(vals, 10) : logThresholds(vals);
 
-  // Rebuild color scale with new thresholds
+  // Choose palette with exactly thresholds.length + 1 colors
+  let palette;
+  if (isShare) {
+    palette = REDS_10.slice(0, thresholds.length + 1); // should be 10 colors
+  } else {
+    // For totals, use a subset of the same reds sized to the bin count
+    const base = REDS_10;
+    const k = thresholds.length + 1;              // desired classes
+    const step = (base.length - 1) / (k - 1);     // resample evenly
+    palette = Array.from({length:k}, (_, i) => base[Math.round(i * step)]);
+  }
+
   color = d3.scaleThreshold()
     .domain(thresholds)
-    .range(['#fee5d9','#fcae91','#fb6a4a','#de2d26','#a50f15']);
+    .range(palette);
 }
+
 function recolorFrancePolygon(){
   updateColorScale();
   zonePaths.attr('fill', d => fillValue(d));
@@ -844,6 +874,7 @@ try {
 </script>
 </body>
 </html>
+
 
 
 
