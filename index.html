@@ -631,8 +631,10 @@ function currentMetric(v){
 function fillValue(feature){
   const v = mapData.get(feature.properties.zone);
   if(!v) return '#ccc';
-  const x = currentMetric(v);
-  return Number.isFinite(x) ? color(x) : '#ccc';
+  let x = currentMetric(v);
+  if (!Number.isFinite(x)) return '#ccc';
+  if (mapMode === 'share') x = x * shareScaleFactor; // if we decided to scale to %
+  return colorScale(x);
 }
 function computeThresholds(values, isShare){
   const v = values.filter(Number.isFinite);
@@ -649,39 +651,54 @@ function computeThresholds(values, isShare){
     return d3.ticks(0, max, 5).slice(1);
   }
 }
+let colorScale;      // d3.scaleSequential
+let shareScaleFactor = 1; // 1 or 100 (when shares are fractions)
+  
+function paletteForMode(){
+  // d3 sequential interpolators
+  if (mapCat === 'ai' && mapMode === 'total') return d3.interpolateReds;
+  if (mapCat === 'ai' && mapMode === 'share') return d3.interpolateReds;
+  if (mapCat === 'gen' && mapMode === 'total') return d3.interpolateBlues;
+  return d3.interpolateBlues; // gen + share
+}
+  
 function updateColorScale(){
-  // Gather current metric values
-  let vals = zonesFC.features.map(f => {
+  // Raw values for the current view
+  const raw = zonesFC.features.map(f => {
     const v = mapData.get(f.properties.zone);
     return v ? currentMetric(v) : NaN;
-  });
+  }).filter(Number.isFinite);
 
+  // If nothing valid, fall back to a safe scale
+  if (!raw.length) {
+    shareScaleFactor = 1;
+    colorScale = d3.scaleSequential(paletteForMode()).domain([0, 1]).clamp(true);
+    return;
+  }
+
+  // For Share, auto-detect fractions and scale to % for nicer spread
   const isShare = (mapMode === 'share');
+  const maxAbs = d3.max(raw.map(Math.abs)) || 0;
+  shareScaleFactor = (isShare && maxAbs <= 1) ? 100 : 1;
 
-  // If share values are fractions (<=1), turn to % for nicer cut points
-  if (isShare) {
-    const maxAbs = d3.max(vals.filter(Number.isFinite).map(Math.abs)) || 0;
-    if (maxAbs <= 1) vals = vals.map(x => Number.isFinite(x) ? x * 100 : x);
+  // Build the scaled series used for color domain
+  const vals = raw.map(x => x * shareScaleFactor);
+
+  let min = d3.min(vals);
+  let max = d3.max(vals);
+
+  // Guard against flat domains (min===max) -> widen a tiny bit
+  if (!(isFinite(min) && isFinite(max))) { min = 0; max = 1; }
+  if (min === max) {
+    const eps = (min === 0) ? 1 : Math.abs(min) * 0.01;
+    min = min - eps/2;
+    max = max + eps/2;
   }
 
-  // Choose thresholds
-  const thresholds = isShare ? logThresholds(vals) : logThresholds(vals);
-
-  // Choose palette with exactly thresholds.length + 1 colors
-  let palette;
-  if (isShare) {
-    palette = REDS_10.slice(0, thresholds.length + 1); // should be 10 colors
-  } else {
-    // For totals, use a subset of the same reds sized to the bin count
-    const base = REDS_10;
-    const k = thresholds.length + 1;              // desired classes
-    const step = (base.length - 1) / (k - 1);     // resample evenly
-    palette = Array.from({length:k}, (_, i) => base[Math.round(i * step)]);
-  }
-
-  color = d3.scaleThreshold()
-    .domain(thresholds)
-    .range(palette);
+  // Final sequential linear scale
+  colorScale = d3.scaleSequential(paletteForMode())
+                 .domain([min, max])   // light→dark from min to max
+                 .clamp(true);
 }
 
 function recolorFrancePolygon(){
@@ -874,6 +891,7 @@ try {
 </script>
 </body>
 </html>
+
 
 
 
