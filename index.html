@@ -15,6 +15,45 @@
   <!-- PapaParse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
+
+:root{
+  /* brand */
+  --brand-900:#0b1f3a; /* deep navy */
+  --brand-800:#132a4a;
+  --brand-700:#1c3a63;
+  --brand-600:#274b7a;
+  --brand-500:#2f5f9a; /* primary accent */
+  --brand-300:#7ea7d8; /* light accent */
+  --brand-100:#e9f0f8; /* very light bg */
+  --ink-900:#0f172a;   /* neutral text */
+  --ink-600:#334155;
+  --ink-400:#94a3b8;
+  --card-bg:#ffffff;
+  --card-border:#e5e7eb;
+  --shadow: 0 10px 25px rgba(2,12,27,.08);
+  --radius: 14px;
+
+  /* status tints for charts if needed */
+  --ai:#e63946;      /* red range  */
+  --gen:#2b6cb0;     /* blue range */
+  --cv:#0ea5e9;      /* cyan       */
+  --nlp:#8b5cf6;     /* violet     */
+}
+
+html, body { background:
+  radial-gradient(1200px 800px at 10% -10%, rgba(47,95,154,.08), transparent 50%),
+  radial-gradient(1000px 600px at 110% 10%, rgba(19,42,74,.06), transparent 45%),
+  #ffffff;
+  color: var(--ink-900);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+/* import a modern font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+
+
+  
   <style>
   /* ==========  LAYOUT & TYPO  ========== */
   *{box-sizing:border-box}
@@ -968,6 +1007,7 @@ try {
 </script>
 </body>
 </html>
+
 
 
 
