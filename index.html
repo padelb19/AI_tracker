@@ -501,6 +501,25 @@ async function loadFrancePolygonMap(){
   initFranceStatic();
 }
 
+// Compute 4 quantile thresholds (20/40/60/80%)
+function quantileThresholds(values){
+  const v = values.filter(Number.isFinite).sort(d3.ascending);
+  if (!v.length) return [0.1, 0.5, 1, 2];
+  return [0.2, 0.4, 0.6, 0.8].map(p => d3.quantileSorted(v, p));
+}
+
+// Compute ~log-spaced thresholds across the positive range
+function logThresholds(values){
+  const v = values.filter(x => Number.isFinite(x) && x > 0);
+  if (!v.length) return [10, 50, 200, 500];
+  const min = d3.min(v), max = d3.max(v);
+  // 4 internal breaks -> 5 color bands
+  const logs = d3.ticks(Math.log10(min), Math.log10(max), 5); // 5 ticks
+  return logs.slice(1).map(t => Math.pow(10, t));              // drop lowest tick
+}
+
+
+  
 // Simple number formatting
 const fmtInt = d3.format(",.0f");
 const fmt1   = d3.format(".1f");
@@ -613,13 +632,24 @@ function computeThresholds(values, isShare){
   }
 }
 function updateColorScale(){
-  const vals = zonesFC.features.map(f=>{
+  // Gather current metric values
+  let vals = zonesFC.features.map(f=>{
     const v = mapData.get(f.properties.zone);
     return v ? currentMetric(v) : NaN;
   });
-  const isShare = (mapMode==='share');
-  const thresholds = computeThresholds(vals, isShare);
 
+  const isShare = (mapMode === 'share');
+
+  // If shares are stored as fractions (<=1), scale to percent for nicer thresholds
+  if (isShare) {
+    const maxAbs = d3.max(vals.filter(Number.isFinite).map(Math.abs)) || 0;
+    if (maxAbs <= 1) vals = vals.map(x => Number.isFinite(x) ? x*100 : x);
+  }
+
+  // Choose thresholds: quantiles for share, log for totals
+  const thresholds = isShare ? quantileThresholds(vals) : logThresholds(vals);
+
+  // Rebuild color scale with new thresholds
   color = d3.scaleThreshold()
     .domain(thresholds)
     .range(['#fee5d9','#fcae91','#fb6a4a','#de2d26','#a50f15']);
@@ -814,6 +844,7 @@ try {
 </script>
 </body>
 </html>
+
 
 
 
