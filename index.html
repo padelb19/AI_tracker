@@ -711,21 +711,47 @@ function setEvolType(t){
 }
 
 /* ---------- SIZE PIE ---------- */
-let sizeChart,sizeCat='ai';
+let sizeChart, sizeCat = 'ai';
+
+// simple pleasant palette (one color per slice)
+const SIZE_COLORS = [
+  '#2f5f9a', '#7ea7d8', '#94a3b8', '#cbd5e1', '#274b7a', '#1c3a63', '#a3bce3'
+];
+// if you want it to auto-extend for any number of labels:
+const colorsFor = n => Array.from({length:n}, (_,i)=> SIZE_COLORS[i % SIZE_COLORS.length]);
+
 function buildSize(){
-  sizeChart=new Chart(document.getElementById('sizeChart'),{
+  const data = sizeAi; // initial mode = 'ai'
+  const bg   = colorsFor(sizeLabels.length);
+
+  sizeChart = new Chart(document.getElementById('sizeChart'),{
     type:'pie',
-    data:{labels:sizeLabels,datasets:[{data:sizeAi}]},
-    options:{responsive:true,plugins:{legend:{position:'bottom'}}}
+    data:{
+      labels: sizeLabels,
+      datasets:[{
+        data: data,
+        backgroundColor: bg,
+        borderWidth: 0,
+        hoverOffset: 6
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ position:'bottom' } }
+    }
   });
 }
+
 function toggleSizeAiGen(){
-  sizeCat=sizeCat==='ai'?'gen':'ai';
-  btnSizeCat.classList.toggle('active',sizeCat==='gen');
-  lblSizeCat.textContent=sizeCat==='gen'?'Generative AI':'AI';
-  sizeChart.data.datasets[0].data=sizeCat==='ai'?sizeAi:sizeGen;
+  sizeCat = (sizeCat === 'ai') ? 'gen' : 'ai';
+  btnSizeCat.classList.toggle('active', sizeCat === 'gen');
+  lblSizeCat.textContent = (sizeCat === 'gen') ? 'Generative AI' : 'AI';
+
+  // swap data only; colors stay mapped to labels
+  sizeChart.data.datasets[0].data = (sizeCat === 'ai') ? sizeAi : sizeGen;
   sizeChart.update();
 }
+
 
 /* ---------- MAP ---------- */
 /* ---------- FRANCE-ONLY CHOROPLETH (Zones d’emploi) ---------- */
@@ -1276,6 +1302,7 @@ document.querySelectorAll('.reveal').forEach(el=> revealer.observe(el));
 </script>
 </body>
 </html>
+
 
 
 
