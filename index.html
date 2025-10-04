@@ -314,6 +314,32 @@ nav button[aria-current="page"]::after{ transform:scaleX(1); }
     Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15,23,42,.92)';
     Chart.defaults.plugins.tooltip.titleColor = '#fff';
     Chart.defaults.plugins.tooltip.bodyColor = '#fff';
+      // Extra polish
+  Chart.defaults.borderColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--grid-strong') || 'rgba(148,163,184,.35)';
+  Chart.defaults.scales = Chart.defaults.scales || {};
+  if (Chart.defaults.scales.linear) {
+    Chart.defaults.scales.linear.grid.color = getComputedStyle(document.documentElement)
+      .getPropertyValue('--grid') || 'rgba(148,163,184,.25)';
+  }
+  Chart.defaults.animation.duration = 700;
+  Chart.defaults.animation.easing = 'easeOutCubic';
+  Chart.defaults.plugins.legend.labels.usePointStyle = true;
+  Chart.defaults.plugins.legend.labels.pointStyle = 'circle';
+  Chart.defaults.locale = 'fr-FR';
+
+  // Rounded bar plugin
+  const roundedBar = {
+    id:'roundedBar',
+    beforeDatasetsDraw(chart){
+      chart.data.datasets.forEach((ds, i)=>{
+        const meta = chart.getDatasetMeta(i);
+        if (meta.type !== 'bar') return;
+        meta.data.forEach(bar => { bar.options.borderRadius = 8; });
+      });
+    }
+  };
+  Chart.register(roundedBar);
   </script>
 </head>
 <body>
@@ -1218,6 +1244,7 @@ try {
 </script>
 </body>
 </html>
+
 
 
 
