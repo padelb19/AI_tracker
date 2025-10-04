@@ -1240,10 +1240,34 @@ try {
   } catch(err) {
     console.error('Error during dashboard load:', err);
   }
+
+  
 };
+document.querySelectorAll('header nav button').forEach(btn=>btn.removeAttribute('aria-current'));
+document.querySelector('header nav button[onclick*="accueil"]')?.setAttribute('aria-current','page');
+
+// Scrollspy for dashboards sections (works even with inline onclicks)
+const spyTargets = ["totalOffersSection","sectorsSection","sizeSection","metierSection","skillsSection","mapOffersSection"]
+  .map(id => document.getElementById(id));
+const spyButtons = [...document.querySelectorAll('.sub-nav button')];
+
+const spy = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(!e.isIntersecting) return;
+    const id = e.target.id;
+    spyButtons.forEach(b=>{
+      const target = b.getAttribute('onclick') || '';
+      const isActive = target.includes(id);
+      b.classList.toggle('active', isActive);
+    });
+  });
+},{rootMargin:"-40% 0px -50% 0px", threshold:.01});
+spyTargets.forEach(el=> el && spy.observe(el));
+  
 </script>
 </body>
 </html>
+
 
 
 
