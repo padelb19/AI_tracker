@@ -713,22 +713,71 @@ async function loadEvol(file, targetArr, dateArr){
 async function loadMetier(file, targetArr, dateArr){
   const txt = await fetchCsv(file);
   const d   = Papa.parse(txt, { header:true, skipEmptyLines:true }).data;
-  if(!d.length) return;
-  if(dateArr.length===0) d.forEach(x=>dateArr.push(x.date));
-  const keys = Object.keys(d[0]).filter(k=>k!=='date');
+  if (!d.length) { console.warn('Metier CSV empty:', file); return; }
+
+  if (dateArr.length === 0) d.forEach(x => dateArr.push(x.date));
+  const keys = Object.keys(d[0]).filter(k => k !== 'date');
+
+  if (!keys.length) { console.warn('Metier CSV has no series columns:', file); return; }
+
   keys.forEach((k,i)=>{
     const fill = metierPalette[i % metierPalette.length];
     const bg   = fill.replace(/1\.0\)$/, '0.35)');
-    targetArr.push({ label:k, data:d.map(x=>toNum(x[k])), borderColor:fill, backgroundColor:bg, fill:true, stack:'s', pointRadius:0 });
+    targetArr.push({
+      label: k,
+      data: d.map(x => toNum(x[k])),
+      borderColor: fill,
+      backgroundColor: bg,
+      fill: true, stack: 's', pointRadius: 0
+    });
+  });
+}
+
+function buildMetier(){
+  if (!metierIA.length && !metierData.length) {
+    console.warn('No metier datasets; skipping chart build.');
+    return;
+  }
+  metierChart = new Chart(document.getElementById('metierChart'),{
+    type:'line',
+    data:{ labels: metierDates, datasets: metierIA },
+    options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ stacked:true } }, elements:{ line:{ fill:true, tension:.3 } } }
   });
 }
 
 async function loadSkills(file, key){
   const d = Papa.parse(await fetchCsv(file), { header:true, skipEmptyLines:true }).data;
-  if(!d.length) return;
-  skillsDates[key] = d.map(x=>x.date);
-  const keys = Object.keys(d[0]).filter(k=>k!=='date');
-  skillsSets[key] = keys.map((k,i)=>({ label:k, data:d.map(x=>+x[k]), borderColor:pastel(i), pointRadius:0, fill:false }));
+  if (!d.length) { console.warn('Skills CSV empty:', file); return; }
+
+  skillsDates[key] = d.map(x => x.date);
+  const keys = Object.keys(d[0]).filter(k => k !== 'date');
+  if (!keys.length) { console.warn('Skills CSV has no series columns:', file); return; }
+
+  skillsSets[key] = keys.map((k,i)=>({
+    label: k,
+    data: d.map(x => +x[k]),
+    borderColor: pastel(i),
+    pointRadius: 0,
+    fill: false
+  }));
+}
+
+function buildSkills(){
+  if (!skillsDates.ml_library.length || !skillsSets.ml_library.length) {
+    console.warn('No skills datasets; skipping chart build.');
+    return;
+  }
+  skillsChart = new Chart(document.getElementById('skillsChart'),{
+    type:'line',
+    data:{ labels: skillsDates[skillsType], datasets: skillsSets[skillsType] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'nearest', intersect:false },
+      scales:{ y:{ stacked:false } },
+      elements:{ line:{ fill:false, tension:.25 } },
+      plugins:{ legend:{ position:'bottom' } }
+    }
+  });
 }
 
 /* ----------------------------------
@@ -824,8 +873,20 @@ async function boot(){
     buildEvol();
 
     // size
-    parseCsv(await fetchCsv('data/distrib_size.csv')).forEach(r=>{ sizeLabels.push(r[0]); sizeAi.push(+r[1]); sizeGen.push(+r[2]); });
-    buildSize();
+    {
+  const raw = Papa.parse(await fetchCsv('data/distrib_size.csv'), { header:false, skipEmptyLines:true }).data;
+  // If the first row contains any non-numeric in [1] or [2], treat as header
+  const hasHeader = raw.length && (isNaN(+raw[0][1]) || isNaN(+raw[0][2]));
+  const body = hasHeader ? raw.slice(1) : raw;
+
+  body.forEach(r => {
+    if (!r || r.length < 3) return;
+    sizeLabels.push(String(r[0]));
+    sizeAi.push(+r[1]);
+    sizeGen.push(+r[2]);
+  });
+  buildSize();
+}
 
     // métiers
     await loadMetier('data/metier_area_ia.csv'  ,metierIA  ,metierDates);
@@ -851,3 +912,4 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 </script>
 </body>
 </html>
+
