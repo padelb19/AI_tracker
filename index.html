@@ -1241,9 +1241,7 @@ try {
     console.error('Error during dashboard load:', err);
   }
 
-  
-};
-document.querySelectorAll('header nav button').forEach(btn=>btn.removeAttribute('aria-current'));
+  document.querySelectorAll('header nav button').forEach(btn=>btn.removeAttribute('aria-current'));
 document.querySelector('header nav button[onclick*="accueil"]')?.setAttribute('aria-current','page');
 
 // Scrollspy for dashboards sections (works even with inline onclicks)
@@ -1263,10 +1261,22 @@ const spy = new IntersectionObserver(entries=>{
   });
 },{rootMargin:"-40% 0px -50% 0px", threshold:.01});
 spyTargets.forEach(el=> el && spy.observe(el));
+
+// Reveal sections/tiles as they enter the viewport
+document.querySelectorAll('.chart-section, .key-figure-card').forEach(el=>{
+  el.classList.add('reveal');
+});
+const revealer = new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('is-in'); revealer.unobserve(e.target); } });
+},{threshold:.15});
+document.querySelectorAll('.reveal').forEach(el=> revealer.observe(el));  
   
+};
+
 </script>
 </body>
 </html>
+
 
 
 
