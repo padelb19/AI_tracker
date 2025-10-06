@@ -240,7 +240,7 @@ nav button::after{
   content:""; position:absolute; left:12px; right:12px; bottom:-6px; height:2px;
   background:#fff; border-radius:2px; transform:scaleX(0); transform-origin:left; transition:transform .25s;
 }
-nav button[aria-current="page"]::after{ transform:scaleX(1); }
+nav button[aria-selected="true"]::after{ transform:scaleX(1); }
 
 /* Sub-nav active state (used by scrollspy) */
 .sub-nav button.active{
@@ -1282,8 +1282,6 @@ try {
     console.error('Error during dashboard load:', err);
   }
 
-  document.querySelectorAll('header nav button').forEach(btn=>btn.removeAttribute('aria-current'));
-document.querySelector('header nav button[onclick*="accueil"]')?.setAttribute('aria-current','page');
 
 // Scrollspy for dashboards sections (works even with inline onclicks)
 const spyTargets = ["totalOffersSection","sectorsSection","sizeSection","metierSection","skillsSection","mapOffersSection"]
@@ -1317,6 +1315,7 @@ document.querySelectorAll('.reveal').forEach(el=> revealer.observe(el));
 </script>
 </body>
 </html>
+
 
 
 
