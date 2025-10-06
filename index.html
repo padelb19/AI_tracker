@@ -528,19 +528,27 @@ nav button[aria-current="page"]::after{ transform:scaleX(1); }
 <!-- ==========  SCRIPTS  ========== -->
 <script>
 /* ---------- helpers ---------- */
+function setActiveTab(id,btn){
+  document.querySelectorAll('nav [role="tab"]').forEach(b=>{
+    const sel = b===btn;
+    b.setAttribute('aria-selected', sel);
+    b.tabIndex = sel ? 0 : -1;
+  });
+}
+
 function showPage(id){
-  // swap visible page
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   const next = document.getElementById(id);
   next.classList.add('active');
 
-  // reset scroll position so short pages don't inherit the long scroll
-  // (works across browsers)
-  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  document.documentElement.scrollTop = 0; // Safari fallback
-  document.body.scrollTop = 0;            // older fallback
+  const btn = [...document.querySelectorAll('nav [role="tab"]')]
+    .find(b=>b.getAttribute('onclick')?.includes(id));
+  if(btn) setActiveTab(id, btn);
 
-  // (optional) if your map needs a relayout after being shown
+  window.scrollTo({ top: 0, behavior: 'auto' });
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+
   if(id==='dashboards' && typeof updateLegend === 'function') {
     setTimeout(()=> { updateLegend(); }, 50);
   }
@@ -647,7 +655,14 @@ function toggleTotalShare(){
   offersChart.data.datasets[0].data=offersMode==='total'?totalGen:shareGen;
   offersChart.data.datasets[1].data=offersMode==='total'?totalAI:shareAI;
   offersChart.data.datasets[2].data=offersMode==='total'?totalCV:shareCV;
-  offersChart.data.datasets[3].data = (offersMode==='total') ? totalNLP  : shareNLP; //
+  offersChart.data.datasets[3].data=offersMode==='total'?totalNLP:shareNLP;
+
+  // NEW: axis label
+  offersChart.options.scales.y.title = {
+    display: true,
+    text: offersMode==='total' ? 'Offers (count)' : 'Share of offers (%)'
+  };
+
   offersChart.update();
   btnOfferMode.classList.toggle('active',offersMode==='share');
   lblOfferMode.textContent=offersMode.charAt(0).toUpperCase()+offersMode.slice(1);
@@ -1302,6 +1317,7 @@ document.querySelectorAll('.reveal').forEach(el=> revealer.observe(el));
 </script>
 </body>
 </html>
+
 
 
 
