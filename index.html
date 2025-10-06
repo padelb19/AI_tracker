@@ -528,35 +528,49 @@ nav button[aria-selected="true"]::after{ transform:scaleX(1); }
 <!-- ==========  SCRIPTS  ========== -->
 <script>
 /* ---------- helpers ---------- */
-function setActiveTab(id,btn){
+function setActiveTab(id, btn){
   document.querySelectorAll('nav [role="tab"]').forEach(b=>{
-    const sel = b===btn;
+    const sel = b === btn;
     b.setAttribute('aria-selected', sel);
     b.tabIndex = sel ? 0 : -1;
+    // If you kept the aria-current underline:
+    // if (sel) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current');
   });
 }
 
 function showPage(id){
+  // 1) swap visible page
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   const next = document.getElementById(id);
   next.classList.add('active');
 
+  // 2) sync tabs
   const btn = [...document.querySelectorAll('nav [role="tab"]')]
     .find(b=>b.getAttribute('onclick')?.includes(id));
-  if(btn) setActiveTab(id, btn);
+  if (btn) setActiveTab(id, btn);
 
-  window.scrollTo({ top: 0, behavior: 'auto' });
-  document.documentElement.scrollTop = 0;
-  document.body.scrollTop = 0;
+  // 3) force scroll to top AFTER layout updates
+  const prevBehavior = document.documentElement.style.scrollBehavior;
+  document.documentElement.style.scrollBehavior = 'auto'; // avoid smooth-keeping at bottom
 
-  if(id==='dashboards' && typeof updateLegend === 'function') {
-    setTimeout(()=> { updateLegend(); }, 50);
+  // Let the browser apply styles and compute new layout, then scroll.
+  requestAnimationFrame(()=>{
+    // anchor to the top of the newly active page (works even if header is sticky)
+    next.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'auto' });
+
+    // also zero the document scroll to be extra safe
+    const scroller = document.scrollingElement || document.documentElement;
+    scroller.scrollTop = 0;
+
+    // restore any previous smooth-scroll preference
+    document.documentElement.style.scrollBehavior = prevBehavior || '';
+  });
+
+  // 4) any page-specific fixes
+  if (id === 'dashboards' && typeof updateLegend === 'function') {
+    // tiny delay so the SVG can size correctly
+    setTimeout(updateLegend, 50);
   }
-}
-
-  function scrollToSection(id){
-  const el=document.getElementById(id);
-  if(el){showPage('dashboards');el.scrollIntoView({behavior:'smooth'});}
 }
 
 /* ---------- load figures for the Home page ---------- */
@@ -1216,6 +1230,10 @@ async function loadSkills(file, key){
   }));
 }
 
+  if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+  
 /* ---------- LOAD EVERYTHING ---------- */
 window.onload=async()=>{
   showPage('accueil');
@@ -1315,6 +1333,7 @@ document.querySelectorAll('.reveal').forEach(el=> revealer.observe(el));
 </script>
 </body>
 </html>
+
 
 
 
