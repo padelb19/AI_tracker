@@ -355,11 +355,11 @@ nav button[aria-current="page"]::after{ transform:scaleX(1); }
     <div class="right-block"></div>
   </div>
 
-  <nav>
-    <button onclick="showPage('accueil')">Accueil</button>
-    <button onclick="showPage('dashboards')">Dashboards</button>
-    <button onclick="showPage('projects')">About</button>
-  </nav>
+<nav role="tablist" aria-label="Primary">
+  <button role="tab" aria-selected="true" tabindex="0" onclick="showPage('accueil')">Overview</button>
+  <button role="tab" aria-selected="false" tabindex="-1" onclick="showPage('dashboards')">Data</button>
+  <button role="tab" aria-selected="false" tabindex="-1" onclick="showPage('projects')">About</button>
+</nav>
 </header>
 
 <!-- ======= HOME (Accueil) ======= -->
@@ -1302,6 +1302,7 @@ document.querySelectorAll('.reveal').forEach(el=> revealer.observe(el));
 </script>
 </body>
 </html>
+
 
 
 
