@@ -330,10 +330,19 @@ nav button[aria-selected="true"]::after{ transform:scaleX(1); }
 .left-block .logo { display:none; }
 
  /* Center the whole header content and give it a max width */
+/* Stack logo row + nav and control the gap */
 .header-wrap{
-  max-width: 1100px;   /* match your cards width */
+  max-width: 1100px;
   margin: 0 auto;
+  display: flex;                 /* NEW */
+  flex-direction: column;        /* NEW */
+  align-items: center;           /* NEW */
+  row-gap: var(--nav-gap-top);   /* NEW → controls distance */
 }
+
+/* Remove margin between logo and nav */
+.header-wrap > nav{ margin: 0; } /* NEW */
+
 
 /* Perfect centering for the middle cell with CSS Grid */
 .header-top{
@@ -379,7 +388,7 @@ nav{
   margin: 0;
   filter: drop-shadow(0 2px 6px rgba(0,0,0,.15));
 }
-
+    
   </style>
 
   <!-- Chart.js global theme defaults -->
@@ -1416,6 +1425,7 @@ document.querySelectorAll('.reveal').forEach(el=> revealer.observe(el));
 </script>
 </body>
 </html>
+
 
 
 
