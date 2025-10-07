@@ -301,6 +301,25 @@ nav button[aria-selected="true"]::after{ transform:scaleX(1); }
   .key-figure-card { background: var(--card-bg); }
 }
 
+/* Make center area clickable (was pointer-events:none) */
+.center-block { display:flex; justify-content:center; align-items:center; pointer-events:auto; }
+
+/* Middle logo sizing + spacing */
+.logo--center { height:72px; width:auto; margin:0; filter: drop-shadow(0 2px 6px rgba(0,0,0,.15)); }
+
+/* Optional: focus ring for keyboard users */
+.brand { display:inline-flex; align-items:center; border-radius:12px; outline: none; }
+.brand:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+
+/* Small screens: slightly smaller logo */
+@media (max-width: 640px){
+  .logo--center { height:56px; }
+}
+
+/* If you keep the old left logo in code, hide it: */
+.left-block .logo { display:none; }
+
+    
     
   </style>
 
@@ -346,12 +365,12 @@ nav button[aria-selected="true"]::after{ transform:scaleX(1); }
 
 <header>
   <div class="header-top">
-    <div class="left-block">
-      <img src="logo.png" alt="AI-tracker logo" class="logo">
-    </div>
-    <div class="center-block">
-      <h1>The French AI-tracker</h1>
-    </div>
+
+<div class="center-block">
+  <a class="brand" href="#accueil" onclick="showPage('accueil'); return false;" aria-label="Go to Overview">
+    <img src="logo.png" alt="AI-Tracker logo" class="logo logo--center">
+  </a>
+</div>
     <div class="right-block"></div>
   </div>
 
@@ -1333,6 +1352,7 @@ document.querySelectorAll('.reveal').forEach(el=> revealer.observe(el));
 </script>
 </body>
 </html>
+
 
 
 
