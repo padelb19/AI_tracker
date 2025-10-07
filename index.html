@@ -384,6 +384,11 @@ nav button[aria-selected="true"]::after{ transform:scaleX(1); }
   margin: 0;
   filter: drop-shadow(0 2px 6px rgba(0,0,0,.15));
 }
+
+    /* Put this near the bottom of <style> so it wins */
+.header-wrap > nav{
+  margin: var(--nav-gap-top) 0 0 !important; /* force override */
+}
     
   </style>
 
@@ -1421,6 +1426,7 @@ document.querySelectorAll('.reveal').forEach(el=> revealer.observe(el));
 </script>
 </body>
 </html>
+
 
 
 
