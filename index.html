@@ -302,29 +302,7 @@ nav button[aria-selected="true"]::after{ transform:scaleX(1); }
 /* Perf: skip layout for off-screen pages */
 .page:not(.active){ content-visibility: auto; contain-intrinsic-size: 800px; }
 
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --card-bg:#0b1220; --card-border:#1a2234;
-    --ink-900:#e5e9f2; --ink-700:#c8d2e1; --ink-600:#9fb2ce; --ink-500:#8aa0c2;
-    --shadow: 0 10px 25px rgba(0,0,0,.4);
-  }
-  body { background: radial-gradient(1200px 800px at 10% -10%, rgba(47,95,154,.15), transparent 50%), #080d17; }
-  nav button { border-color: rgba(255,255,255,.12); background: rgba(255,255,255,.06); }
-  .key-figure-card { background: var(--card-bg); }
-}
 
-/* Make center area clickable (was pointer-events:none) */
-.center-block { display:flex; justify-content:center; align-items:center; pointer-events:auto; }
-
-/* Optional: focus ring for keyboard users */
-.brand { display:inline-flex; align-items:center; border-radius:12px; outline: none; }
-.brand:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
-
-/* Small screens: slightly smaller logo */
-@media (max-width: 640px){
-  .logo--center { height:56px; }
-}
 
 /* If you keep the old left logo in code, hide it: */
 .left-block .logo { display:none; }
@@ -1434,6 +1412,7 @@ document.querySelectorAll('.reveal').forEach(el=> revealer.observe(el));
 </script>
 </body>
 </html>
+
 
 
 
