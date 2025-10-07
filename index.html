@@ -64,24 +64,37 @@
   /* =========================
      HEADER + NAV
      ========================= */
-  header{
-    background: linear-gradient(135deg, var(--brand-900), var(--brand-700));
-    color:#fff;
-    padding:20px 18px;
-    position:sticky; top:0; z-index:10;
-    box-shadow: 0 2px 18px rgba(0,0,0,.08);
-  }
-  .header-top{ display:flex; align-items:center; gap:16px; }
+header{
+  background: linear-gradient(135deg, color-mix(in oklab, var(--brand-900), #000 10%), var(--brand-700));
+  padding: var(--header-pad-y) 18px;   /* was: 20px 18px */
+  position: sticky; top: 0; z-index: 10;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  backdrop-filter: saturate(140%) blur(8px);
+}
+  .header-top{
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;            /* a bit tighter than 16px */
+  min-height: 0;        /* don’t force extra height */
+}
+
   .left-block,.center-block,.right-block{ flex:1; min-height:50px }
   .left-block{ display:flex; align-items:center }
   .logo{ height:72px; width:auto; margin-left:6px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.15)); }
   .center-block{ display:flex; justify-content:center; align-items:center; pointer-events:none }
   .center-block h1{ margin:0; font-size:1.9rem; font-weight:700; letter-spacing:.2px }
-
-  nav{
-    display:flex; justify-content:center; gap:12px; margin:12px 0 0;
-    flex-wrap:wrap;
-  }
+.logo--center{
+  height: var(--logo-size);  /* was fixed pixels */
+  width: auto;
+  margin: 0;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.15));
+}
+nav{
+  display:flex; justify-content:center; gap:12px;
+  margin: var(--nav-gap-top) 0 0;   /* was: margin-top:12px; */
+  flex-wrap: wrap;
+}
   nav button{
     padding:10px 16px;
     border-radius:999px;
@@ -363,7 +376,12 @@ nav{
   .logo--center{ height: 64px; }
 }
    
-    
+ :root{
+  --logo-size: 96px;      /* ← make bigger/smaller */
+  --header-pad-y: 12px;   /* ← vertical padding of header */
+  --nav-gap-top: 8px;     /* ← space between logo row and buttons */
+}
+   
   </style>
 
   <!-- Chart.js global theme defaults -->
@@ -1400,6 +1418,7 @@ document.querySelectorAll('.reveal').forEach(el=> revealer.observe(el));
 </script>
 </body>
 </html>
+
 
 
 
