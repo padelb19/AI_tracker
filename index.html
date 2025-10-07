@@ -319,7 +319,50 @@ nav button[aria-selected="true"]::after{ transform:scaleX(1); }
 /* If you keep the old left logo in code, hide it: */
 .left-block .logo { display:none; }
 
-    
+ /* Center the whole header content and give it a max width */
+.header-wrap{
+  max-width: 1100px;   /* match your cards width */
+  margin: 0 auto;
+}
+
+/* Perfect centering for the middle cell with CSS Grid */
+.header-top{
+  display: grid;
+  grid-template-columns: 1fr auto 1fr; /* left | center | right */
+  align-items: center;
+  gap: 16px;
+  min-height: 50px;
+}
+
+/* Keep left/right as flex containers in case you add things later */
+.left-block, .right-block{ display:flex; align-items:center; }
+
+/* Center cell is clickable (remove the earlier pointer-events:none) */
+.center-block{ display:flex; justify-content:center; align-items:center; }
+
+/* Bigger logo */
+.logo--center{
+  height: 88px;      /* bigger than before */
+  width: auto;
+  margin: 0;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.15));
+}
+
+/* Make the logo a11y-friendly when tabbed */
+.brand{ display:inline-flex; align-items:center; border-radius:12px; outline:none; }
+.brand:focus-visible{ outline:2px solid #fff; outline-offset:4px; }
+
+/* Keep the nav directly under the logo, centered because of .header-wrap */
+nav{
+  display:flex; justify-content:center; gap:12px; margin:12px 0 0;
+  flex-wrap:wrap;
+}
+
+/* Responsive: slightly smaller logo on small screens */
+@media (max-width: 640px){
+  .logo--center{ height: 64px; }
+}
+   
     
   </style>
 
@@ -364,22 +407,27 @@ nav button[aria-selected="true"]::after{ transform:scaleX(1); }
 <body>
 
 <header>
-  <div class="header-top">
+  <div class="header-wrap">
+    <div class="header-top">
+      <div class="left-block"><!-- empty on purpose --></div>
 
-<div class="center-block">
-  <a class="brand" href="#accueil" onclick="showPage('accueil'); return false;" aria-label="Go to Overview">
-    <img src="logo.png" alt="AI-Tracker logo" class="logo logo--center">
-  </a>
-</div>
-    <div class="right-block"></div>
+      <div class="center-block">
+        <a class="brand" href="#accueil" onclick="showPage('accueil'); return false;" aria-label="Go to Overview">
+          <img src="logo.png" alt="AI-Tracker logo" class="logo logo--center">
+        </a>
+      </div>
+
+      <div class="right-block"><!-- empty on purpose, for symmetry --></div>
+    </div>
+
+    <nav role="tablist" aria-label="Primary">
+      <button role="tab" aria-selected="true" tabindex="0" onclick="showPage('accueil')">Overview</button>
+      <button role="tab" aria-selected="false" tabindex="-1" onclick="showPage('dashboards')">Data</button>
+      <button role="tab" aria-selected="false" tabindex="-1" onclick="showPage('projects')">About</button>
+    </nav>
   </div>
-
-<nav role="tablist" aria-label="Primary">
-  <button role="tab" aria-selected="true" tabindex="0" onclick="showPage('accueil')">Overview</button>
-  <button role="tab" aria-selected="false" tabindex="-1" onclick="showPage('dashboards')">Data</button>
-  <button role="tab" aria-selected="false" tabindex="-1" onclick="showPage('projects')">About</button>
-</nav>
 </header>
+
 
 <!-- ======= HOME (Accueil) ======= -->
 <div id="accueil" class="page active">
@@ -1352,6 +1400,7 @@ document.querySelectorAll('.reveal').forEach(el=> revealer.observe(el));
 </script>
 </body>
 </html>
+
 
 
 
