@@ -677,9 +677,16 @@ async function loadHome(){
   }
 }
 
-const fetchCsv=url=>fetch(url).then(r=>{if(!r.ok)throw url;return r.text()});
+const fetchCsv = (url) =>
+  fetch(url, { cache: "no-store" })
+    .then(r => { if(!r.ok) throw url; return r.text(); });
 const parseCsv=txt=>Papa.parse(txt,{header:false,skipEmptyLines:true}).data.slice(1);
-const monthLabel=i=>`${2019+Math.floor(i/12)}-${String((i%12)+1).padStart(2,'0')}`;
+const START_MONTH = new Date(2019, 0, 1); // 2019-01-01
+const monthLabel = (i) => {
+  const d = new Date(START_MONTH);
+  d.setMonth(d.getMonth() + i);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}`;
+};
 const quarterLabel=i=>`Q${(i%4)+1} ${2019+Math.floor(i/4)}`;
 const pastel=i=>`hsl(${(i*40)%360},45%,72%)`;
 
@@ -1317,7 +1324,55 @@ async function loadSkills(file, key){
   if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
 }
-  
+function parseNumericRows(csvText){
+  const raw = Papa.parse(csvText, { header:false, skipEmptyLines:true }).data;
+
+  // Drop header row if it contains non-numeric text
+  const looksLikeHeader = raw.length && raw[0].some(v => {
+    const s = String(v ?? "").trim();
+    return s && Number.isNaN(Number(s.replace(',', '.')));
+  });
+  const rows = looksLikeHeader ? raw.slice(1) : raw;
+
+  // Convert to numbers (keep as array-of-arrays)
+  return rows.map(r => r.map(v => toNum(v)));
+}
+
+// Returns { n, gen, ai, cv, nlp } padded to length n with NaN if needed
+async function loadOffersFile(path){
+  const rows = parseNumericRows(await fetchCsv(path));
+  if (!rows.length) return { n:0, gen:[], ai:[], cv:[], nlp:[] };
+
+  // Detect whether first col is an index (6 cols: idx + 4 series) or not (5 cols: 4 series)
+  // Your current code expects 5 columns total in data rows: [idx, gen, ai, cv, nlp]
+  // But many exports are [gen, ai, cv, nlp] without idx.
+  const hasIndex = rows[0].length >= 5; // if it’s 5+, assume first col might be index
+  // More robust: if first col is integer-like and second col is not NaN -> treat as index
+  const treatFirstAsIndex =
+    rows[0].length >= 5 &&
+    Number.isFinite(rows[0][0]) &&
+    Number.isFinite(rows[0][1]);
+
+  const off = treatFirstAsIndex ? 1 : 0;
+
+  const gen = [], ai = [], cv = [], nlp = [];
+  rows.forEach(r => {
+    gen.push(r[off + 0]);
+    ai .push(r[off + 1]);
+    cv .push(r[off + 2]);
+    nlp.push(r[off + 3]);
+  });
+
+  return { n: rows.length, gen, ai, cv, nlp };
+}
+
+// pad array to n with NaN (so missing months stay empty instead of shifting)
+function padTo(arr, n){
+  const out = arr.slice();
+  while(out.length < n) out.push(NaN);
+  return out;
+}
+
 /* ---------- LOAD EVERYTHING ---------- */
 window.onload=async()=>{
   showPage('accueil');
@@ -1325,13 +1380,33 @@ window.onload=async()=>{
 
   try{
     /* offers */
-    parseCsv(await fetchCsv('data/offers_total.csv')).forEach(r=>{
-      dateLabels.push(monthLabel(+r[0])); totalGen.push(+r[1]); totalAI.push(+r[2]); totalCV.push(+r[3]);   totalNLP.push(+r[4]);
-    });
-    parseCsv(await fetchCsv('data/offers_share.csv')).forEach(r=>{
-      shareGen.push(+r[1]); shareAI.push(+r[2]); shareCV.push(+r[3]);shareNLP.push(+r[4]);
-    });
-    buildOffers();
+/* offers (robust + future-proof) */
+const tot = await loadOffersFile('data/offers_total.csv');
+const sha = await loadOffersFile('data/offers_share.csv');
+
+// Use the LONGEST file to define the timeline (so new months show up)
+const n = Math.max(tot.n, sha.n);
+
+// labels strictly from row index = month index since 2019-01
+dateLabels = Array.from({ length: n }, (_, i) => monthLabel(i));
+
+// pad series so Chart.js always has consistent lengths
+totalGen = padTo(tot.gen, n);
+totalAI  = padTo(tot.ai,  n);
+totalCV  = padTo(tot.cv,  n);
+totalNLP = padTo(tot.nlp, n);
+
+shareGen = padTo(sha.gen, n);
+shareAI  = padTo(sha.ai,  n);
+shareCV  = padTo(sha.cv,  n);
+shareNLP = padTo(sha.nlp, n);
+
+if (tot.n !== sha.n) {
+  console.warn(`offers_total has ${tot.n} months but offers_share has ${sha.n}. Missing months padded with NaN.`);
+}
+
+buildOffers();
+
 
     /* sectors (robust loader) */
     await loadTwoSectors('data/two_sectors_total_gen.csv',    true,  indTotGen, servTotGen);
@@ -1417,6 +1492,7 @@ document.querySelectorAll('.reveal').forEach(el=> revealer.observe(el));
 </script>
 </body>
 </html>
+
 
 
 
